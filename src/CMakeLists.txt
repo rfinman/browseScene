@@ -5,8 +5,28 @@ find_package(PkgConfig REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
+find_package(Pangolin REQUIRED)
 
-include_directories(${EIGEN3_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR})
+#include_directories(${EIGEN3_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR})
+
+INCLUDE_DIRECTORIES(
+  ${Pangolin_INCLUDE_DIR}
+  ${CG_INCLUDE_PATH}
+  ${EIGEN3_INCLUDE_DIR}
+  ${CVD_INCLUDE_DIR}
+  ${OPENGL_INCLUDE_DIR}
+)
+
+LINK_LIBRARIES(
+  ${Pangolin_LIBRARY}
+  ${Eigen3_LIBRARY}
+  ${CVD_LIBRARY}
+  -lGLEW
+  -lglut
+  -lGLU
+  -lGL
+)
+
 
 SET(TINYOBJLOADER_SOURCES
 ./utils/map_object_label2training_label.h
@@ -16,8 +36,12 @@ SET(TINYOBJLOADER_SOURCES
 ./tinyobjloader/obj_writer.cc
 )
 
+ADD_EXECUTABLE(browse
+               ${TINYOBJLOADER_SOURCES}
+               browse.cpp)
+
+
 ##############################################
-add_executable (browse browse.cpp)
-target_link_libraries (browse ${TINYOBJLOADER_SOURCES} ${OPENGL_LIBRARIES} 
-${GLUT_LIBRARIES})
+#add_executable (browse ${TINYOBJLOADER_SOURCES} browse.cpp)
+#target_link_libraries (browse ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES})
 
