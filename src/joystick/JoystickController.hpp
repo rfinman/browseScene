@@ -21,8 +21,8 @@ private:
     void buttonCallback(const EventJoystick);
 
     int l_vert, l_horiz, r_vert, r_horiz,
-        roll, pitch, yaw;
-    pthread_mutex_t mlv, mlh, mrv, mrh, mroll, mpitch, myaw;
+        roll, pitch, yaw, r_trigger, l_trigger;
+    pthread_mutex_t mlv, mlh, mrv, mrh, mroll, mpitch, myaw, mlt, mrt;
 
 public:
     JoystickController();
@@ -32,12 +32,15 @@ public:
 
     void startJoystick();
 
-    int getLVert();
-    int getLHoriz();
-    int getRVert();
-    int getRHoriz();
-    int getRoll();
-    int getPitch();
-    int getYaw();
+    float getLVert();
+    float getLHoriz();
+    float getRVert();
+    float getRHoriz();
+    float getRoll();
+    float getPitch();
+    float getYaw();
+
+    float getLTrigger();
+    float getRTrigger();
 };
 #endif

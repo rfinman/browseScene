@@ -22,8 +22,10 @@ enum axes{
     IMU_YAW
 };
 
+/*Start buttons at index 8*/
 enum buttons{
-    // TODO: Fill in if needed
+    LEFT_TRIGGER = 8,
+    RIGHT_TRIGGER
 };
 
 struct EventJoystick

@@ -215,7 +215,7 @@ namespace povray_utils{
         //        }
         //        else
         {
-            glMultMatrix(world_from_cam);
+            //glMultMatrix(world_from_cam);
         }
 
 

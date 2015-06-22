@@ -17,16 +17,9 @@ JoystickController::JoystickController():device_path_set(false),
     pthread_mutex_init(&mroll, NULL);    
     pthread_mutex_init(&mpitch, NULL);    
     pthread_mutex_init(&myaw, NULL);
-   /* 
-    std::cout << "Starting sixad"<<std::endl;
-    if (system("sixad --start") <= 0)
-    {
-        std::cout << "Running sixad --start failed, " <<
-                     "joystick not working" << std::endl;
-        exit(1);
-    }
-    std::cout <<"Joystick set up" <<std::endl;
-    */
+
+    pthread_mutex_init(&mlt, NULL);
+    pthread_mutex_init(&mrt, NULL);
 }
 
 JoystickController::~JoystickController()
@@ -38,6 +31,9 @@ JoystickController::~JoystickController()
     pthread_mutex_destroy(&mroll);    
     pthread_mutex_destroy(&mpitch);    
     pthread_mutex_destroy(&myaw);    
+
+    pthread_mutex_destroy(&mlt);    
+    pthread_mutex_destroy(&mrt);    
 }
 
 void JoystickController::setDevicePath(std::string path)
@@ -45,6 +41,24 @@ void JoystickController::setDevicePath(std::string path)
     device_path.clear();
     device_path.insert(0,path);
     device_path_set = true;
+}
+
+void JoystickController::buttonCallback(const EventJoystick eventJoy)
+{
+    switch (eventJoy.number)
+    {
+        case LEFT_TRIGGER:
+            pthread_mutex_lock(&mlt);
+            l_trigger = eventJoy.value;
+            pthread_mutex_unlock(&mlt);
+            break;
+        case RIGHT_TRIGGER:
+            pthread_mutex_lock(&mrt);
+            r_trigger = eventJoy.value;
+            pthread_mutex_unlock(&mrt);
+            break;
+    }
+
 }
 
 void JoystickController::axisCallback(const EventJoystick eventJoy)
@@ -58,7 +72,6 @@ void JoystickController::axisCallback(const EventJoystick eventJoy)
             pthread_mutex_lock(&mlv);
             l_vert = eventJoy.value;
             pthread_mutex_unlock(&mlv);
-            //std::cout <<"l_vert = "<<l_vert<<std::endl;
             break;
         case LEFT_HORIZONTAL:
             pthread_mutex_lock(&mlh);
@@ -114,71 +127,89 @@ void JoystickController::startJoystick()
     std::cout << "Joystick: "<<joystick.getIdentifier()<<std::endl;
 
     joystick.signalAxis.connect(sigc::mem_fun(*this, &JoystickController::axisCallback));
-    // TODO Set up buttons if needbe
+    joystick.signalButton.connect(sigc::mem_fun(*this, 
+    &JoystickController::buttonCallback));
 
     pause();
 }
 
-int JoystickController::getLVert()
+float JoystickController::getLVert()
 {
     int val;
     pthread_mutex_lock(&mlv);
     val = l_vert;
     pthread_mutex_unlock(&mlv);
-    //std::cout<<l_vert<<" val = "<<val<<" and "<<(float)val/32768000.0<<std::endl;
-    return val;
+    return (float)val/32768.0;
 }
 
-int JoystickController::getLHoriz()
+float JoystickController::getLHoriz()
 {
     int val;
     pthread_mutex_lock(&mlh);
     val = l_horiz;
     pthread_mutex_unlock(&mlh);
-    return val;
+    return (float)val/32768.0;
 }
 
-int JoystickController::getRVert()
+float JoystickController::getRVert()
 {
     int val;
     pthread_mutex_lock(&mrv);
     val = r_vert;
     pthread_mutex_unlock(&mrv);
-    return val;
+    return (float)val/32768.0;
 }
 
-int JoystickController::getRHoriz()
+float JoystickController::getRHoriz()
 {
     int val;
     pthread_mutex_lock(&mrh);
     val = r_horiz;
     pthread_mutex_unlock(&mrh);
-    return val;
+    return (float)val/32768.0;
 }
 
-int JoystickController::getRoll()
+float JoystickController::getRoll()
 {
     int val;
     pthread_mutex_lock(&mroll);
     val = roll;
     pthread_mutex_unlock(&mroll);
-    return val;
+    return (float)val/32768.0;
 }
 
-int JoystickController::getPitch()
+float JoystickController::getPitch()
 {
     int val;
     pthread_mutex_lock(&mpitch);
     val = pitch;
     pthread_mutex_unlock(&mpitch);
-    return val;
+    return (float)val/32768.0;
 }
 
-int JoystickController::getYaw()
+float JoystickController::getYaw()
 {
     int val;
     pthread_mutex_lock(&myaw);
     val = yaw;
     pthread_mutex_unlock(&myaw);
-    return val;
+    return (float)val/32768.0;
+}
+
+float JoystickController::getLTrigger()
+{
+    int val;
+    pthread_mutex_lock(&mlt);
+    val = l_trigger;
+    pthread_mutex_unlock(&mlt);
+    return (float)val;
+}
+
+float JoystickController::getRTrigger()
+{
+    int val;
+    pthread_mutex_lock(&mrt);
+    val = r_trigger;
+    pthread_mutex_unlock(&mrt);
+    return (float)val;
 }
