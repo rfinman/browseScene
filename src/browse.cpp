@@ -3,6 +3,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/thread.hpp>
 
 #include<TooN/TooN.h>
 
@@ -14,12 +15,10 @@
 #include <cvd/image_io.h>
 
 #include "utils/map_object_label2training_label.h"
-
 #include "utils/se3_file_utils.h"
-
 #include "utils/povray_utils.h"
-
 #include "utils/tiny_obj_loader.h"
+#include "joystick/JoystickController.hpp"
 
 using namespace pangolin;
 
@@ -300,6 +299,12 @@ int main(int argc, char *argv[])
         }
     }
 
+
+    /* Start Joystick */
+    JoystickController joystick;
+    boost::thread* joystickThread = new 
+    boost::thread(boost::bind(&JoystickController::startJoystick, &joystick));
+
     /// Scale 1 means 640x480 images
     /// Scale 2 means 320x240 images
 
@@ -443,7 +448,10 @@ int main(int argc, char *argv[])
 
                 TooN::SE3<>T_cw = T_wc.inverse();
 
-                TooN::SO3<>Rot = TooN::SO3<>(T_cw.get_rotation()) * TooN::SO3<>(TooN::makeVector((float)rx,(float)ry,(float)rz));
+                TooN::SO3<>Rot = TooN::SO3<>(
+                    TooN::SO3<>(TooN::makeVector(joystick.getPitch()/100,
+                                                 joystick.getRHoriz()/-100,
+                                                 joystick.getRoll()/100)) * T_cw.get_rotation());
                 TooN::Matrix<3>SO3Mat = Rot.get_matrix();
                 TooN::Vector<3>trans = T_cw.get_translation();
 
@@ -451,12 +459,14 @@ int main(int argc, char *argv[])
 
                 SE3Mat.slice(0,0,3,3) = SO3Mat;
 
-                SE3Mat(0,3) = trans[0]+(float)tx;
-                SE3Mat(1,3) = trans[1]+(float)ty;
-                SE3Mat(2,3) = trans[2]+(float)tz;
+                SE3Mat(0,3) = trans[0]+joystick.getLHoriz()/100.0*-1;
+                SE3Mat(2,3) = trans[2]+joystick.getLVert()/100.0;
+                SE3Mat(1,3) = trans[1]+
+                              (joystick.getRTrigger()-joystick.getLTrigger())/100.0;
 
                 /// Ref: http://www.felixgers.de/teaching/jogl/generalTransfo.html
                 /// It should be a transpose - stored in column major
+                //std::cout<<SE3Mat<<std::endl;
                 for(int col = 0; col < 4; col++ )
                 {
                     for(int row = 0; row < 4; row++)
@@ -554,14 +564,20 @@ int main(int argc, char *argv[])
                     glDisableClientState(GL_VERTEX_ARRAY);
                 }
 
-
                 T_wcam = TooN::SE3<>(TooN::SO3<>(TooN::makeVector((float)rx,
                                                                   (float)ry,
                                                                   (float)rz)),
                                                  TooN::makeVector((float)tx,
                                                                   (float)ty,
                                                                   (float)tz));
-
+/*
+                T_wcam = TooN::SE3<>(TooN::SO3<>(TooN::makeVector((float)joystick.getRVert()/100,
+                                                                  (float)joystick.getRHoriz()/100,
+                                                                  (float)rz)),
+                                                 TooN::makeVector((float)tx,
+                                                                  (float)ty,
+                                                                  (float)tz));
+*/
 
                 if ( !entered )
                 {

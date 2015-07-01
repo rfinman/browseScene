@@ -8,42 +8,60 @@ find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(Pangolin REQUIRED)
 
-#include_directories(${EIGEN3_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR})
+link_directories( ${GTKMM_LIBRARY_DIRS})
+include_directories( ${GTKMM_INCLUDE_DIRS})
 
 INCLUDE_DIRECTORIES(
-  ${Pangolin_INCLUDE_DIR}
-  ${CG_INCLUDE_PATH}
-  ${EIGEN3_INCLUDE_DIR}
-  ${CVD_INCLUDE_DIR}
-  ${OPENGL_INCLUDE_DIR}
-)
+            ${Pangolin_INCLUDE_DIR}
+            ${CG_INCLUDE_PATH}
+            ${EIGEN3_INCLUDE_DIR}
+            ${CVD_INCLUDE_DIR}
+            ${OPENGL_INCLUDE_DIR}
+            )
 
 LINK_LIBRARIES(
-  ${Pangolin_LIBRARY}
-  ${Eigen3_LIBRARY}
-  ${CVD_LIBRARY}
-  -lGLEW
-  -lglut
-  -lGLU
-  -lGL
-)
+            ${Pangolin_LIBRARY}
+            ${Eigen3_LIBRARY}
+            ${CVD_LIBRARY}
+            -lGLEW
+            -lglut
+            -lGLU
+            -lGL
+            )
 
 
 SET(TINYOBJLOADER_SOURCES
-./utils/map_object_label2training_label.h
-./utils/povray_utils.h
-./tinyobjloader/tiny_obj_loader.h
-./tinyobjloader/tiny_obj_loader.cc
-./tinyobjloader/obj_writer.h
-./tinyobjloader/obj_writer.cc
-)
+#<<<<<<< HEAD
+#./utils/map_object_label2training_label.h
+#./utils/povray_utils.h
+#./tinyobjloader/tiny_obj_loader.h
+#./tinyobjloader/tiny_obj_loader.cc
+#./tinyobjloader/obj_writer.h
+#./tinyobjloader/obj_writer.cc
+#)
 
-ADD_EXECUTABLE(browse
-               ${TINYOBJLOADER_SOURCES}
-               browse.cpp)
+#ADD_EXECUTABLE(browse
+#               ${TINYOBJLOADER_SOURCES}
+#               browse.cpp)
 
 
 ##############################################
 #add_executable (browse ${TINYOBJLOADER_SOURCES} browse.cpp)
 #target_link_libraries (browse ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES})
 
+#=======
+            ./utils/map_object_label2training_label.h
+            ./tinyobjloader/tiny_obj_loader.h
+            ./tinyobjloader/tiny_obj_loader.cc
+            ./tinyobjloader/obj_writer.h
+            ./tinyobjloader/obj_writer.cc
+            )
+
+ADD_EXECUTABLE(browse ${TINYOBJLOADER_SOURCES} 
+                      browse.cpp 
+                      joystick/JoystickController.cpp 
+                      joystick/joystick.cpp
+                      )
+
+target_link_libraries(browse ${GTKMM_LIBRARIES})
+#>>>>>>> 8af489eb4c87a10e446d9763b3392c90561a13ca
