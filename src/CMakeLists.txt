@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/" $CMAKE_MODULE_PATH})
+
 find_package(PkgConfig REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -30,6 +31,7 @@ LINK_LIBRARIES(
 
 SET(TINYOBJLOADER_SOURCES
 ./utils/map_object_label2training_label.h
+./utils/povray_utils.h
 ./tinyobjloader/tiny_obj_loader.h
 ./tinyobjloader/tiny_obj_loader.cc
 ./tinyobjloader/obj_writer.h
