@@ -161,7 +161,6 @@ void drawAxes(GLdouble length)
 
 
 void change_basis(TooN::SE3<>& T_wc_ref,
-//                  TooN::Cholesky<4>& Tchangebasis,
                   TooN::Matrix<4>&T)
 {
     TooN::Matrix<4>T4x4 = T.T() * T_wc_ref * T  ;
@@ -275,56 +274,18 @@ int main(int argc, char *argv[])
     pangolin::View& d_panel = pangolin::CreatePanel("ui")
             .SetBounds(1.0, 0.0, 0, pangolin::Attach::Pix(150));
 
-//    pangolin::View& depth_lvl0 = Display("depth_lvl0")
-//            .SetAspect((float)width/(float)height)
-//            .SetBounds(0.75,1,0.19,0.20+0.19,false);
-
-//    pangolin::View& depth_lvl1 = Display("depth_lvl1")
-//            .SetAspect((float)width/(float)height)
-//            .SetBounds(0.75,1,0.20+0.19,2*0.20+0.19,false);
-
-//    pangolin::View& depth_lvl2 = Display("depth_lvl2")
-//            .SetAspect((float)width/(float)height)
-//            .SetBounds(0.75,1,0.19+2*0.20,0.20*3+0.19,false);
-
-//    pangolin::View& depth_lvl3 = Display("depth_lvl3")
-//            .SetAspect((float)width/(float)height)
-//            .SetBounds(0.75,1.0,0.20*3+0.19,1,false);
-
-
-
-    /// This is the one I used for depth rendering....
+    /// This is the one I used for rendering....
 
     pangolin::OpenGlRenderState s_cam(
       ProjectionMatrixRDF_BottomLeft(640,480,420.0,420.0,320,240,0.1,1000),
       ModelViewLookAt(3,3,3, 0,0,0, AxisNegZ)
     );
 
-//    pangolin::OpenGlRenderState s_cam(
-//      ProjectionMatrix(640,480,420,420,320,240,0.1,1000),
-////      ModelViewLookAt(3,3,3, 0,0,0, AxisNegZ)
-//        ModelViewLookAt(3,3,3, 0,0,0, AxisY)
-//    );
-
-//    pangolin::OpenGlRenderState s_cam;
-//    s_cam.SetProjectionMatrix(ProjectionMatrixRDF_TopLeft(640, 480, 420, 420, 320, 320, 0.1, 1000.0));
-//    s_cam.SetModelViewMatrix(IdentityMatrix());
-
-
-//    pangolin::OpenGlRenderState browsing_cam(
-//      ProjectionMatrix(640,480,420,420,320,240,0.1,1000),
-//      ModelViewLookAt(3,3,3, 0,0,0, AxisY)
-//    );
-
     /// Add named OpenGL viewport to window and provide 3D Handler
     pangolin::View& d_cam = pangolin::Display("cam")
       .SetBounds(0.0, 1, Attach::Pix(UI_WIDTH), 1, -640.0f/480.0f)
       .SetHandler(new Handler3D(s_cam));
 
-
-    TooN::SE3<>T_move;
-
-    std::cout<<"entering the while loop" << std::endl;
 
     OpenGlMatrix openglSE3Matrix;
 
@@ -384,18 +345,9 @@ int main(int argc, char *argv[])
     colour2indexMap[125 + 123*256 + 122*256*256] = 17-1;
     colour2indexMap[  0 + 0*256   +   0*256*256] = 17;
 
-
     std::vector<TooN::SE3<> >poses2render;
-//    poses2render.push_back(TooN::SE3<>());
 
     int render_pose_count = 0;
-
-    float depth_arrayf[width*height];
-
-    CVD::Image<u_int16_t>depth_image(CVD::ImageRef(width,height));
-
-    float near =0.1;
-    float far = 1000;
 
     srand (time(NULL));
 
@@ -446,9 +398,7 @@ int main(int argc, char *argv[])
     {       
         static Var<int>numposes2plot("ui.numposes2plot",0,0,100);
 
-        //if ( render_glReadPixels )
         {
-//            render_glReadPixels = false;
 
             numposes2plot  = render_pose_count;
 
@@ -456,8 +406,6 @@ int main(int argc, char *argv[])
                 return 1;
 
             TooN::SE3<>T_wc = poses2render.at(render_pose_count);
-
-//            change_basis(T_wc,T);
 
             TooN::SE3<>T_cw = T_wc.inverse();
 
