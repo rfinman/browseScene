@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/" $CMAKE_MODULE_PATH})
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMakeModules/")
+#set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/" $CMAKE_MODULE_PATH})
 
 find_package(PkgConfig REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 find_package(Pangolin REQUIRED)
+find_package(CVD REQUIRED)
 
 link_directories( ${GTKMM_LIBRARY_DIRS})
 include_directories( ${GTKMM_INCLUDE_DIRS})
@@ -31,25 +33,6 @@ LINK_LIBRARIES(
 
 
 SET(TINYOBJLOADER_SOURCES
-#<<<<<<< HEAD
-#./utils/map_object_label2training_label.h
-#./utils/povray_utils.h
-#./tinyobjloader/tiny_obj_loader.h
-#./tinyobjloader/tiny_obj_loader.cc
-#./tinyobjloader/obj_writer.h
-#./tinyobjloader/obj_writer.cc
-#)
-
-#ADD_EXECUTABLE(browse
-#               ${TINYOBJLOADER_SOURCES}
-#               browse.cpp)
-
-
-##############################################
-#add_executable (browse ${TINYOBJLOADER_SOURCES} browse.cpp)
-#target_link_libraries (browse ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES})
-
-#=======
             ./utils/map_object_label2training_label.h
             ./tinyobjloader/tiny_obj_loader.h
             ./tinyobjloader/tiny_obj_loader.cc
@@ -64,4 +47,8 @@ ADD_EXECUTABLE(browse ${TINYOBJLOADER_SOURCES}
                       )
 
 target_link_libraries(browse ${GTKMM_LIBRARIES})
-#>>>>>>> 8af489eb4c87a10e446d9763b3392c90561a13ca
+
+ADD_EXECUTABLE(render_annotated_image ${TINYOBJLOADER_SOURCES} 
+		      main_annotation_render.cpp)
+
+target_link_libraries(render_annotated_image ${GTKMM_LIBRARIES})
