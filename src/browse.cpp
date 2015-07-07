@@ -301,9 +301,9 @@ int main(int argc, char *argv[])
 
 
     /* Start Joystick */
-    JoystickController joystick;
-    boost::thread* joystickThread = new 
-    boost::thread(boost::bind(&JoystickController::startJoystick, &joystick));
+//    JoystickController joystick;
+//    boost::thread* joystickThread = new
+//    boost::thread(boost::bind(&JoystickController::startJoystick, &joystick));
 
     /// Scale 1 means 640x480 images
     /// Scale 2 means 320x240 images
@@ -407,14 +407,14 @@ int main(int argc, char *argv[])
     while(!pangolin::ShouldQuit())
     {
 
-        static Var<float>tx("ui.tx",0,0,0.001);
-        static Var<float>ty("ui.ty",0,0,0.001);
-        static Var<float>tz("ui.tz",0,0,0.001);
+        static Var<float>tx("ui.tx",0,0,0.1);
+        static Var<float>ty("ui.ty",0,0,0.1);
+        static Var<float>tz("ui.tz",0,0,0.1);
 
 
-        static Var<float>rx("ui.rx",0,0,0.005);
-        static Var<float>ry("ui.ry",0,0,0.005);
-        static Var<float>rz("ui.rz",0,0,0.005);
+        static Var<float>rx("ui.rx",0,0,0.5);
+        static Var<float>ry("ui.ry",0,0,0.5);
+        static Var<float>rz("ui.rz",0,0,0.5);
 
         static Var<float>radius("ui.radius",1,1,10);
 
@@ -567,9 +567,7 @@ int main(int argc, char *argv[])
             //std::cout<<T_wc<<std::endl;
 
             glEnable(GL_DEPTH_TEST);
-
             glClear(GL_COLOR_BUFFER_BIT);
-
             glColor3f(1.0f,1.0f,1.0f);
 
             /// Code to plot each of the objects in the mesh
@@ -601,6 +599,8 @@ int main(int argc, char *argv[])
                                                  TooN::makeVector((float)tx,
                                                                   (float)ty,
                                                                   (float)tz));
+
+                std::cout<<"T_wcam = " << T_wcam << std::endl;
 /*
                 T_wcam = TooN::SE3<>(TooN::SO3<>(TooN::makeVector((float)joystick.getRVert()/100,
                                                                   (float)joystick.getRHoriz()/100,
@@ -609,18 +609,19 @@ int main(int argc, char *argv[])
                                                                   (float)ty,
                                                                   (float)tz));
 */
+                povray_utils::DrawCamera(T_wcam, (float)end_pt, (float)line_width,false);
 
-                if ( !entered )
-                {
-                    T_s = T_wcam;
-                    povray_utils::DrawCamera(T_wcam, (float)end_pt, (float)line_width,false);
+//                if ( !entered )
+//                {
+//                    T_s = T_wcam;
+//                    povray_utils::DrawCamera(T_wcam, (float)end_pt, (float)line_width,false);
 
-                }
+//                }
 
-                if (entered)
-                {
-                    povray_utils::DrawCamera(T_s,(float)end_pt, (float)line_width,false);
-                }
+//                if (entered)
+//                {
+//                    povray_utils::DrawCamera(T_s,(float)end_pt, (float)line_width,false);
+//                }
 
                 if ( show_camera_and_modelviewgl )
                 {
