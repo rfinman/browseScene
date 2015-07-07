@@ -522,7 +522,7 @@ int main(int argc, char *argv[])
             sprintf(fileName,"%s/label_00_%07d.png",data_dir.c_str(),render_pose_count/skip_frame);
             CVD::img_save(labelImage,fileName);
 
-            glReadPixels(150, 0, 640, 480, GL_DEPTH_COMPONENT, GL_FLOAT, depth_arrayf);
+//            glReadPixels(150, 0, 640, 480, GL_DEPTH_COMPONENT, GL_FLOAT, depth_arrayf);
 
             char poseFileName[300];
 
