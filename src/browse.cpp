@@ -448,17 +448,18 @@ int main(int argc, char *argv[])
 
                 TooN::SE3<>T_cw = T_wc.inverse();
 
-                /**
+                //#define _joystick_
+
+                #ifdef _joystick_
                 TooN::SO3<>Desired_Rot = TooN::SO3<>(TooN::makeVector(
                                      joystick.getPitch()/100,
                                      joystick.getRHoriz()/-100,
                                      joystick.getRoll()/100
                                      ));
-                **/ 
-                /**/
+                #else
                 TooN::SO3<>Desired_Rot = TooN::SO3<>(TooN::makeVector(
                                      (float)rx, (float)ry, (float)rz));
-                /**/
+                #endif
 
                 TooN::SO3<>Rot = TooN::SO3<>(T_cw.get_rotation() * 
                     Desired_Rot);
@@ -469,14 +470,18 @@ int main(int argc, char *argv[])
                 TooN::Matrix<4>SE3Mat = TooN::Identity(4);
 
                 SE3Mat.slice(0,0,3,3) = SO3Mat;
-                SE3Mat(0,3) = T_cw.get_translation()[0];
-                SE3Mat(1,3) = T_cw.get_translation()[1];
-                SE3Mat(2,3) = T_cw.get_translation()[2];
+
+                #ifdef _joystick_
+                SE3Mat(0,3) = trans[0]+joystick.getLHoriz()/100.0*-1;
+                SE3Mat(2,3) = trans[2]+joystick.getLVert()/100.0;
+                SE3Mat(1,3) = trans[1]+
+                              (joystick.getRTrigger()-joystick.getLTrigger())/100.0;
+                #else
+                SE3Mat(0,3) = trans[0] + (float)ty;
+                SE3Mat(1,3) = trans[1] + (float)tz;
+                SE3Mat(2,3) = trans[2] + (float)tx;
+                #endif
                 
-                //SE3Mat(0,3) = trans[0]+joystick.getLHoriz()/100.0*-1;
-                //SE3Mat(2,3) = trans[2]+joystick.getLVert()/100.0;
-                //SE3Mat(1,3) = trans[1]+
-                //              (joystick.getRTrigger()-joystick.getLTrigger())/100.0;
 
 
                 /// Ref: http://www.felixgers.de/teaching/jogl/generalTransfo.html
