@@ -8,7 +8,9 @@ JoystickController::JoystickController():device_path_set(false),
                                          r_horiz(0),
                                          roll(0),
                                          pitch(0),
-                                         yaw(0)
+                                         yaw(0),
+                                         l_trigger(0),
+                                         r_trigger(0)
 {
     pthread_mutex_init(&mlv, NULL);    
     pthread_mutex_init(&mlh, NULL);    

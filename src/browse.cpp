@@ -330,7 +330,8 @@ int main(int argc, char *argv[])
 
     pangolin::OpenGlRenderState browsing_cam;
     browsing_cam.SetProjectionMatrix(ProjectionMatrixRDF_BottomLeft(640, 480, 420, 420, 320, 320, 0.1, 1000.0));
-    browsing_cam.SetModelViewMatrix(ModelViewLookAt(3,3,3, 0,0,0, AxisNegZ));
+    browsing_cam.SetModelViewMatrix(ModelViewLookAt(-0.8,1.5,-1.25, 0,1,-3.14, 
+    AxisY));
 
     pangolin::View& display_browsing_cam = pangolin::Display("cam")
       .SetBounds(0.0, 1, Attach::Pix(UI_WIDTH), 1/*0.5*/, -640.0f/480.0f)
@@ -435,7 +436,6 @@ int main(int argc, char *argv[])
         static Var<bool> write_poses("ui.write_poses",false);
 
         {
-
             if ( start_browsing )
             {
                 if ( count%10 == 0 && checkDisplacement(T_wc,T_prev) > 1E-3 )
@@ -448,25 +448,39 @@ int main(int argc, char *argv[])
 
                 TooN::SE3<>T_cw = T_wc.inverse();
 
-                TooN::SO3<>Rot = TooN::SO3<>(
-                    TooN::SO3<>(TooN::makeVector(joystick.getPitch()/100,
-                                                 joystick.getRHoriz()/-100,
-                                                 joystick.getRoll()/100)) * T_cw.get_rotation());
+                /**
+                TooN::SO3<>Desired_Rot = TooN::SO3<>(TooN::makeVector(
+                                     joystick.getPitch()/100,
+                                     joystick.getRHoriz()/-100,
+                                     joystick.getRoll()/100
+                                     ));
+                **/ 
+                /**/
+                TooN::SO3<>Desired_Rot = TooN::SO3<>(TooN::makeVector(
+                                     (float)rx, (float)ry, (float)rz));
+                /**/
+
+                TooN::SO3<>Rot = TooN::SO3<>(T_cw.get_rotation() * 
+                    Desired_Rot);
+
                 TooN::Matrix<3>SO3Mat = Rot.get_matrix();
                 TooN::Vector<3>trans = T_cw.get_translation();
 
                 TooN::Matrix<4>SE3Mat = TooN::Identity(4);
 
                 SE3Mat.slice(0,0,3,3) = SO3Mat;
+                SE3Mat(0,3) = T_cw.get_translation()[0];
+                SE3Mat(1,3) = T_cw.get_translation()[1];
+                SE3Mat(2,3) = T_cw.get_translation()[2];
+                
+                //SE3Mat(0,3) = trans[0]+joystick.getLHoriz()/100.0*-1;
+                //SE3Mat(2,3) = trans[2]+joystick.getLVert()/100.0;
+                //SE3Mat(1,3) = trans[1]+
+                //              (joystick.getRTrigger()-joystick.getLTrigger())/100.0;
 
-                SE3Mat(0,3) = trans[0]+joystick.getLHoriz()/100.0*-1;
-                SE3Mat(2,3) = trans[2]+joystick.getLVert()/100.0;
-                SE3Mat(1,3) = trans[1]+
-                              (joystick.getRTrigger()-joystick.getLTrigger())/100.0;
 
                 /// Ref: http://www.felixgers.de/teaching/jogl/generalTransfo.html
                 /// It should be a transpose - stored in column major
-                //std::cout<<SE3Mat<<std::endl;
                 for(int col = 0; col < 4; col++ )
                 {
                     for(int row = 0; row < 4; row++)
@@ -481,6 +495,10 @@ int main(int argc, char *argv[])
 
                 count++;
 
+            }
+            else
+            {
+                //poses2render.clear();
             }
 
             if ( set_this_openglMatrix )
@@ -520,20 +538,28 @@ int main(int argc, char *argv[])
             float modelviewMatrix[16];
             glGetFloatv(GL_MODELVIEW_MATRIX, modelviewMatrix);
 
+            //std::cout<<"Get T_wc"<<std::endl;
+            //int a = 0;
             for(int c = 0; c < 3; c++)
             {
                 for(int r = 0; r < 3; r++ )
                 {
                     RMat(c,r) = modelviewMatrix[r*4+c];
+                    //std::cout<<modelviewMatrix[a++]<<", ";
                 }
+                //std::cout<<modelviewMatrix[a++]<<"  -  "<<(a-1)<<std::endl;
             }
+                //std::cout<<std::endl;
 
             t1 = modelviewMatrix[12];
             t2 = modelviewMatrix[13];
             t3 = modelviewMatrix[14];
+            //std::cout <<"trans = "<<t1<<" "<<t2<<" "<<t3<<std::endl;
 
             TooN::SE3<>currentT_cw = TooN::SE3<>(TooN::SO3<>(RMat),TooN::makeVector(t1,t2,t3));
+            //std::cout<<currentT_cw<<std::endl;
             T_wc = currentT_cw.inverse();
+            //std::cout<<T_wc<<std::endl;
 
             glEnable(GL_DEPTH_TEST);
 
@@ -639,7 +665,8 @@ int main(int argc, char *argv[])
                 char trajectory_fileName[200];
 
                 sprintf(trajectory_fileName,"%s/%s_trajectory_random_poses_SE3_3x4.txt",
-                        data_dir.c_str(),
+                        //data_dir.c_str(),
+                        ".",
                         obj_basename.c_str());
 
                 std::cout<<"trajectory_fileName = " << trajectory_fileName << std::endl;
