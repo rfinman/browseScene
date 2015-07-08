@@ -306,6 +306,8 @@ int main(int argc, char *argv[])
     JoystickController joystick;
     boost::thread* joystickThread = new
     boost::thread(boost::bind(&JoystickController::startJoystick, &joystick));
+
+    float lastRoll = 0;
     #endif
 
     /// Scale 1 means 640x480 images
@@ -453,8 +455,6 @@ int main(int argc, char *argv[])
 
                 TooN::SE3<>T_ow = T_wc.inverse();
 
-
-                TooN::Vector<3> trans = T_ow.get_translation();
                 #ifdef _joystick_
                 TooN::SE3<>T_update(TooN::SO3<>(TooN::makeVector(
                                         joystick.getRVert()/100,
@@ -466,7 +466,6 @@ int main(int argc, char *argv[])
                                         -joystick.getLTrigger())/100.0,
                                         joystick.getLVert()/100.0
                                      ));
-
                 #else
                 TooN::SE3<>T_update(TooN::SO3<>(TooN::makeVector(
                                         (float)rx, (float)ry, (float)rz)),
@@ -475,11 +474,9 @@ int main(int argc, char *argv[])
                                      );
                 #endif
 
-                /* There is a weird offset on the camera.  T_co undoes that.
-                   The value of T_co was manually found and is not principled*/
-
-                TooN::SE3<> T_prime = (T_co * T_update * (T_co.inverse())) * 
-                T_ow;
+                /* Yes, left multiply.  Right multiplying gives really strange 
+                 * issues*/
+                TooN::SE3<> T_prime = T_update * T_ow;
 
                 TooN::Matrix<4>SE3Mat = TooN::Identity(4);
                 SE3Mat.slice(0,0,3,3) = T_prime.get_rotation().get_matrix();
