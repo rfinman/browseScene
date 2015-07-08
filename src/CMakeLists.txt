@@ -31,7 +31,6 @@ LINK_LIBRARIES(
             -lGL
             )
 
-
 SET(TINYOBJLOADER_SOURCES
             ./utils/map_object_label2training_label.h
             ./tinyobjloader/tiny_obj_loader.h
