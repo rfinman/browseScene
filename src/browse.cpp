@@ -300,7 +300,7 @@ int main(int argc, char *argv[])
     }
 
 
-    //#define _joystick_
+    #define _joystick_
     #ifdef _joystick_
     /* Start Joystick */
     JoystickController joystick;
@@ -438,7 +438,7 @@ int main(int argc, char *argv[])
         static Var<bool> write_poses("ui.write_poses",false);
 
         TooN::SE3<> T_co(TooN::SO3<>(TooN::makeVector(0,0,0)),
-                               TooN::makeVector(-1,1.5,-1));
+                               TooN::makeVector(0,0,0));
 
         {
             if ( start_browsing )
@@ -454,16 +454,17 @@ int main(int argc, char *argv[])
                 TooN::SE3<>T_ow = T_wc.inverse();
 
 
+                TooN::Vector<3> trans = T_ow.get_translation();
                 #ifdef _joystick_
                 TooN::SE3<>T_update(TooN::SO3<>(TooN::makeVector(
-                                        joystick.getPitch()/100,
+                                        joystick.getRVert()/100,
                                         joystick.getRHoriz()/-100,
                                         joystick.getRoll()/100)),
                                      TooN::makeVector(
                                         joystick.getLHoriz()/100.0*-1,
-                                        joystick.getLVert()/100.0,
                                         (joystick.getRTrigger()
-                                        -joystick.getLTrigger())/100.0
+                                        -joystick.getLTrigger())/100.0,
+                                        joystick.getLVert()/100.0
                                      ));
 
                 #else
@@ -477,7 +478,8 @@ int main(int argc, char *argv[])
                 /* There is a weird offset on the camera.  T_co undoes that.
                    The value of T_co was manually found and is not principled*/
 
-                TooN::SE3<> T_prime = T_ow * T_co * T_update * (T_co.inverse());
+                TooN::SE3<> T_prime = (T_co * T_update * (T_co.inverse())) * 
+                T_ow;
 
                 TooN::Matrix<4>SE3Mat = TooN::Identity(4);
                 SE3Mat.slice(0,0,3,3) = T_prime.get_rotation().get_matrix();
