@@ -43,7 +43,6 @@ int main (int argc, char** argv)
     ConvertPoses poses(pose_filepath, "test.sh");
     std::vector<float> pose;
 
-    pose = poses.readPoseFromFile();
     for (pose = poses.readPoseFromFile(); pose.size() != 0;
          pose = poses.readPoseFromFile())
     {
