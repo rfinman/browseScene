@@ -385,7 +385,6 @@ int main(int argc, char *argv[])
     std::cout<<"Trajectory file = " << trajectory_fileName << std::endl;
     std::cout<<"poses2render.size() = " << poses2render.size() << std::endl;
 
-
     TooN::Matrix<4>T = TooN::Data(  1,  0,  0,  0,
                                     0,  1,  0,  0,
                                     0,  0,  1,  0,
@@ -393,6 +392,10 @@ int main(int argc, char *argv[])
 
 
     int skip_frame = 5;
+
+    std::set<int> unique_objects;
+
+    bool inserted_objects=false;
 
     while(!pangolin::ShouldQuit())
     {       
@@ -440,29 +443,29 @@ int main(int argc, char *argv[])
 
             d_cam.ActivateScissorAndClear(s_cam);
 
-            float projectionMatrix[16];
-            glGetFloatv(GL_PROJECTION_MATRIX, projectionMatrix);
+//            float projectionMatrix[16];
+//            glGetFloatv(GL_PROJECTION_MATRIX, projectionMatrix);
 
-            for(int r = 0; r < 4; r++)
-            {
-                for(int c = 0; c < 4; c++)
-                {
-                    std::cout<<projectionMatrix[r*4+c]<<" ";
-                }
-                std::cout<<std::endl;
-            }
+//            for(int r = 0; r < 4; r++)
+//            {
+//                for(int c = 0; c < 4; c++)
+//                {
+//                    std::cout<<projectionMatrix[r*4+c]<<" ";
+//                }
+//                std::cout<<std::endl;
+//            }
 
 
-            float modelviewMatrix[16];
-            glGetFloatv(GL_MODELVIEW_MATRIX, modelviewMatrix);
-            for(int c = 0; c < 4; c++)
-            {
-                for(int r = 0; r < 4; r++ )
-                {
-                    std::cout<<modelviewMatrix[r*4+c]<<" ";
-                }
-                std::cout<<std::endl;
-            }
+//            float modelviewMatrix[16];
+//            glGetFloatv(GL_MODELVIEW_MATRIX, modelviewMatrix);
+//            for(int c = 0; c < 4; c++)
+//            {
+//                for(int r = 0; r < 4; r++ )
+//                {
+//                    std::cout<<modelviewMatrix[r*4+c]<<" ";
+//                }
+//                std::cout<<std::endl;
+//            }
 
 
             glEnable(GL_DEPTH_TEST);
@@ -473,7 +476,12 @@ int main(int argc, char *argv[])
 
             for(int i = 0 ; i < shapes.size();i++)
             {
-                int training_label = obj_label2training_label(shapes[i].name);
+                int training_label = obj_label2training_label(shapes[i].name);                
+
+                if ( !inserted_objects )
+                {
+                    unique_objects.insert(training_label);
+                }
 
                 glColor3f(colours(training_label,0),colours(training_label,1),colours(training_label,2));
 
@@ -485,8 +493,14 @@ int main(int argc, char *argv[])
 
             }
 
+            if ( !inserted_objects )
+            {
+                inserted_objects = true;
+            }
+
             CVD::Image<CVD::Rgb<CVD::byte> > img = CVD::glReadPixels<CVD::Rgb<CVD::byte> >(CVD::ImageRef(640,480),
                                                                                            CVD::ImageRef(150,0));
+
 
 
 #pragma omp parallel for
@@ -506,6 +520,8 @@ int main(int argc, char *argv[])
 
             CVD::Image<CVD::byte>labelImage = CVD::Image<CVD::byte>(CVD::ImageRef(640,480));
 
+            std::set<int> unique_objects_this_frame;
+
 #pragma omp parallel for
             for(int yy = 0; yy < height; yy++ )
             {
@@ -516,8 +532,18 @@ int main(int argc, char *argv[])
                     int ind = pix.red + 256*pix.green + 256*256*pix.blue;
 
                     labelImage[CVD::ImageRef(xx,yy)] = colour2indexMap[ind];
+
+                    unique_objects_this_frame.insert(labelImage[CVD::ImageRef(xx,yy)]);
                 }
             }
+
+            std::cout <<"unique objects this frame = ";
+            std::set<int>::iterator it;
+            for (it=unique_objects_this_frame.begin(); it!=unique_objects_this_frame.end(); ++it)
+            {
+                std::cout << ' ' << *it;
+            }
+            std::cout<<std::endl;
 
             sprintf(fileName,"%s/label_00_%07d.png",data_dir.c_str(),render_pose_count/skip_frame);
             CVD::img_save(labelImage,fileName);
