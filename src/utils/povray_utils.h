@@ -33,7 +33,11 @@ namespace povray_utils{
         world_from_cam = TooN::SE3<>(rot_trans);
 
         {
+//<<<<<<< HEAD
+                glMultMatrix(world_from_cam);
+//=======
             //glMultMatrix(world_from_cam);
+//>>>>>>> 4c92afdc6e70098e2e44ad70fead84eaede3801f
         }
 
 

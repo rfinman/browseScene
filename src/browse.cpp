@@ -334,7 +334,8 @@ int main(int argc, char *argv[])
             .SetBounds(1.0, 0.0, 0, pangolin::Attach::Pix(150));
 
     pangolin::OpenGlRenderState browsing_cam;
-    browsing_cam.SetProjectionMatrix(ProjectionMatrixRDF_BottomLeft(640, 480, 420, 420, 320, 320, 0.1, 1000.0));
+    browsing_cam.SetProjectionMatrix(ProjectionMatrixRDF_BottomLeft(640, 480, 420, 420,
+                                                                    320, 320, 0.1, 1000.0));
     browsing_cam.SetModelViewMatrix(ModelViewLookAt(-0.8,1.5,-1.25, 0,1,-3.14, 
     AxisY));
 
@@ -467,6 +468,7 @@ int main(int argc, char *argv[])
                                         joystick.getLVert()/100.0
                                      ));
                 #else
+                TooN::SO3<>Desired_Rot = TooN::SO3<>(TooN::makeVector((float)rx, (float)ry, (float)rz));
                 TooN::SE3<>T_update(TooN::SO3<>(TooN::makeVector(
                                         (float)rx, (float)ry, (float)rz)),
                                      TooN::makeVector(
