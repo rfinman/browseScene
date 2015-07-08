@@ -300,10 +300,13 @@ int main(int argc, char *argv[])
     }
 
 
+    //#define _joystick_
+    #ifdef _joystick_
     /* Start Joystick */
-//    JoystickController joystick;
-//    boost::thread* joystickThread = new
-//    boost::thread(boost::bind(&JoystickController::startJoystick, &joystick));
+    JoystickController joystick;
+    boost::thread* joystickThread = new
+    boost::thread(boost::bind(&JoystickController::startJoystick, &joystick));
+    #endif
 
     /// Scale 1 means 640x480 images
     /// Scale 2 means 320x240 images
@@ -411,7 +414,6 @@ int main(int argc, char *argv[])
         static Var<float>ty("ui.ty",0,0,0.1);
         static Var<float>tz("ui.tz",0,0,0.1);
 
-
         static Var<float>rx("ui.rx",0,0,0.5);
         static Var<float>ry("ui.ry",0,0,0.5);
         static Var<float>rz("ui.rz",0,0,0.5);
@@ -435,6 +437,9 @@ int main(int argc, char *argv[])
 
         static Var<bool> write_poses("ui.write_poses",false);
 
+        TooN::SE3<> T_co(TooN::SO3<>(TooN::makeVector(0,0,0)),
+                               TooN::makeVector(-1,1.5,-1));
+
         {
             if ( start_browsing )
             {
@@ -446,43 +451,39 @@ int main(int argc, char *argv[])
                     T_prev = T_wc;
                 }
 
-                TooN::SE3<>T_cw = T_wc.inverse();
+                TooN::SE3<>T_ow = T_wc.inverse();
 
-                //#define _joystick_
 
                 #ifdef _joystick_
-                TooN::SO3<>Desired_Rot = TooN::SO3<>(TooN::makeVector(
-                                     joystick.getPitch()/100,
-                                     joystick.getRHoriz()/-100,
-                                     joystick.getRoll()/100
+                TooN::SE3<>T_update(TooN::SO3<>(TooN::makeVector(
+                                        joystick.getPitch()/100,
+                                        joystick.getRHoriz()/-100,
+                                        joystick.getRoll()/100)),
+                                     TooN::makeVector(
+                                        joystick.getLHoriz()/100.0*-1,
+                                        joystick.getLVert()/100.0,
+                                        (joystick.getRTrigger()
+                                        -joystick.getLTrigger())/100.0
                                      ));
+
                 #else
-                TooN::SO3<>Desired_Rot = TooN::SO3<>(TooN::makeVector(
-                                     (float)rx, (float)ry, (float)rz));
+                TooN::SE3<>T_update(TooN::SO3<>(TooN::makeVector(
+                                        (float)rx, (float)ry, (float)rz)),
+                                     TooN::makeVector(
+                                        (float)tx, (float)ty, (float)tz)
+                                     );
                 #endif
 
-                TooN::SO3<>Rot = TooN::SO3<>(T_cw.get_rotation() * 
-                    Desired_Rot);
+                /* There is a weird offset on the camera.  T_co undoes that.
+                   The value of T_co was manually found and is not principled*/
 
-                TooN::Matrix<3>SO3Mat = Rot.get_matrix();
-                TooN::Vector<3>trans = T_cw.get_translation();
+                TooN::SE3<> T_prime = T_ow * T_co * T_update * (T_co.inverse());
 
                 TooN::Matrix<4>SE3Mat = TooN::Identity(4);
-
-                SE3Mat.slice(0,0,3,3) = SO3Mat;
-
-                #ifdef _joystick_
-                SE3Mat(0,3) = trans[0]+joystick.getLHoriz()/100.0*-1;
-                SE3Mat(2,3) = trans[2]+joystick.getLVert()/100.0;
-                SE3Mat(1,3) = trans[1]+
-                              (joystick.getRTrigger()-joystick.getLTrigger())/100.0;
-                #else
-                SE3Mat(0,3) = trans[0] + (float)ty;
-                SE3Mat(1,3) = trans[1] + (float)tz;
-                SE3Mat(2,3) = trans[2] + (float)tx;
-                #endif
-                
-
+                SE3Mat.slice(0,0,3,3) = T_prime.get_rotation().get_matrix();
+                SE3Mat(0,3) = T_prime.get_translation()[0];
+                SE3Mat(1,3) = T_prime.get_translation()[1];
+                SE3Mat(2,3) = T_prime.get_translation()[2];
 
                 /// Ref: http://www.felixgers.de/teaching/jogl/generalTransfo.html
                 /// It should be a transpose - stored in column major
@@ -600,7 +601,7 @@ int main(int argc, char *argv[])
                                                                   (float)ty,
                                                                   (float)tz));
 
-                std::cout<<"T_wcam = " << T_wcam << std::endl;
+               // std::cout<<"T_wcam = " << T_wcam << std::endl;
 /*
                 T_wcam = TooN::SE3<>(TooN::SO3<>(TooN::makeVector((float)joystick.getRVert()/100,
                                                                   (float)joystick.getRHoriz()/100,
