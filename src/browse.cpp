@@ -468,15 +468,12 @@ int main(int argc, char *argv[])
                                         joystick.getLVert()/100.0
                                      ));
                 #else
-<<<<<<< HEAD
                 TooN::SO3<>Desired_Rot = TooN::SO3<>(TooN::makeVector((float)rx, (float)ry, (float)rz));
-=======
                 TooN::SE3<>T_update(TooN::SO3<>(TooN::makeVector(
                                         (float)rx, (float)ry, (float)rz)),
                                      TooN::makeVector(
                                         (float)tx, (float)ty, (float)tz)
                                      );
->>>>>>> 4c92afdc6e70098e2e44ad70fead84eaede3801f
                 #endif
 
                 /* Yes, left multiply.  Right multiplying gives really strange 
