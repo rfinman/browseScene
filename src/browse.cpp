@@ -543,28 +543,20 @@ int main(int argc, char *argv[])
             float modelviewMatrix[16];
             glGetFloatv(GL_MODELVIEW_MATRIX, modelviewMatrix);
 
-            //std::cout<<"Get T_wc"<<std::endl;
-            //int a = 0;
             for(int c = 0; c < 3; c++)
             {
                 for(int r = 0; r < 3; r++ )
                 {
                     RMat(c,r) = modelviewMatrix[r*4+c];
-                    //std::cout<<modelviewMatrix[a++]<<", ";
                 }
-                //std::cout<<modelviewMatrix[a++]<<"  -  "<<(a-1)<<std::endl;
             }
-                //std::cout<<std::endl;
 
             t1 = modelviewMatrix[12];
             t2 = modelviewMatrix[13];
             t3 = modelviewMatrix[14];
-            //std::cout <<"trans = "<<t1<<" "<<t2<<" "<<t3<<std::endl;
 
             TooN::SE3<>currentT_cw = TooN::SE3<>(TooN::SO3<>(RMat),TooN::makeVector(t1,t2,t3));
-            //std::cout<<currentT_cw<<std::endl;
             T_wc = currentT_cw.inverse();
-            //std::cout<<T_wc<<std::endl;
 
             glEnable(GL_DEPTH_TEST);
             glClear(GL_COLOR_BUFFER_BIT);

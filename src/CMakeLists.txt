@@ -44,10 +44,10 @@ ADD_EXECUTABLE(browse ${TINYOBJLOADER_SOURCES}
                       joystick/JoystickController.cpp 
                       joystick/joystick.cpp
                       )
-
 target_link_libraries(browse ${GTKMM_LIBRARIES})
 
 ADD_EXECUTABLE(render_annotated_image ${TINYOBJLOADER_SOURCES} 
 		      main_annotation_render.cpp)
-
 target_link_libraries(render_annotated_image ${GTKMM_LIBRARIES})
+
+ADD_EXECUTABLE(create_script create_povray_script.cpp convert_poses.cpp)
