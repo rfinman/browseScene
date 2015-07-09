@@ -22,16 +22,16 @@
 
 #include <VaFRIC/VaFRIC.h>
 
-#include <icarus/icarus.h>
+//#include <icarus/icarus.h>
 
 #include <iu/iuio.h>
 #include <iu/iumath.h>
 #include <iu/iufilter.h>
 
-#include "cudakernels/noise/add_kinect_noise.h"
-#include "cudakernels/math/aux_math.h"
+#include "noise/add_kinect_noise.h"
+//#include "cudakernels/math/aux_math.h"
 
-#include "rendering/openglrendering.h"
+//#include "rendering/o penglrendering.h"
 
 
 using namespace pangolin;
@@ -66,31 +66,6 @@ void GPUMemory()
         cuCtxDetach( context ); // Destroy context
     }
 }
-
-//void read_tom_trajectory_timestamps(std::vector<unsigned long long>& time_stamps)
-//{
-//    ifstream file;
-//    std::string line;
-
-//    file.open("../data/lcmlog-2013-08-07.01.poses");
-
-//    while(!file.eof())
-//    {
-//        unsigned long long int utime;
-//        float x, y, z, qx, qy, qz, qw;
-//        std::getline(file, line);
-
-//        int n = sscanf(line.c_str(), "%llu,%f,%f,%f,%f,%f,%f,%f", &utime, &x, &y, &z, &qx, &qy, &qz, &qw);
-
-//        if(file.eof())
-//            break;
-
-//        assert(n == 8);
-
-//        time_stamps.push_back(utime);
-//    }
-//}
-
 
 int main(void)
 {
@@ -170,13 +145,13 @@ int main(void)
                           0, -480.0,     239.50,
                           0,      0,       1.00};
 
-    dataset::vaFRIC dataset("/home/ankur/workspace/code/traj3_loop",
-                     640,480,
-                     K[0][2],
-                     K[1][2],
-                     K[0][0],
-                     K[1][1],
-                     false);
+//    dataset::vaFRIC dataset("/home/ankur/workspace/code/traj3_loop",
+//                     640,480,
+//                     K[0][2],
+//                     K[1][2],
+//                     K[0][0],
+//                     K[1][1],
+//                     false);
 
 
     iu::ImageCpu_32f_C1* h_depth = new iu::ImageCpu_32f_C1(IuSize(width,height));
@@ -221,34 +196,34 @@ int main(void)
     std::cout<<"Entering the Pangolin Display Loop" << std::endl;
 
     iu::ImageGpu_8u_C4* d_colour_l0 = new iu::ImageGpu_8u_C4(width,height);
-//    iu::ImageCpu_8u_C4* h_colour_l0 = new iu::ImageCpu_8u_C4(width,height);
-
-//    uchar4* colour_data = h_colour_l0->data();
 
     uchar4 colour_val = make_uchar4(255,255,255,1);
     iu::setValue(colour_val,d_colour_l0,d_colour_l0->roi());
 
-    while(!pangolin::ShouldQuit())
+    int ref_image_no = 0;
+    float sigma_shift = 1/2.0f;
+
+    while(1)
     {
 
 //        std::cout <<"Total number of files: "<< dataset.getNumberofImageFiles() << std::endl;
 
-        static Var<int> ref_image_no("ui.ref_img_no",0,0,dataset.getNumberofImageFiles());
+//        static Var<int> ref_image_no("ui.ref_img_no",0,0,1000);
 
-        static Var<float> z1("ui.z1",0,0,1);
-        static Var<float> z2("ui.z2",0.0,0,0.01);
-        static Var<float> z3("ui.z3",0.4,0,1);
+//        static Var<float> z1("ui.z1",0,0,1);
+//        static Var<float> z2("ui.z2",0.0,0,0.01);
+//        static Var<float> z3("ui.z3",0.4,0,1);
 
-        static Var<float> focal_length("ui.focal_length",480,10,1000);
+//        static Var<float> focal_length("ui.focal_length",480,10,1000);
 
-        static Var<float> theta1("ui.theta1",0.8,0,1);
-        static Var<float> theta2("ui.theta2",0.035,0,1);
+//        static Var<float> theta1("ui.theta1",0.8,0,1);
+//        static Var<float> theta2("ui.theta2",0.035,0,1);
 
-        static Var<bool>write_images("ui.write_images",false);
+//        static Var<bool>write_images("ui.write_images",false);
 
-        static Var<float>sigma_shift("ui.sigma shift",1/2.0f,0,1);
-        static Var<float>sigma("ui.sigma",0.5,0,1);
-        static Var<int>kernel_size("ui.kernel_size",3,1,10);
+//        static Var<float>sigma_shift("ui.sigma shift",1/2.0f,0,1);
+//        static Var<float>sigma("ui.sigma",0.5,0,1);
+//        static Var<int>kernel_size("ui.kernel_size",3,1,10);
 
         /// The depth is between
         //dataset.getEuclidean2PlanarDepth((int)ref_image_no,0,h_depth->data());
@@ -279,7 +254,7 @@ int main(void)
 
 
         /// Convert the depth into vertices
-        aux_math::ComputeVertexFromDepth(depth->data(),
+        noise::ComputeVertexFromDepth(depth->data(),
                                          depth->stride(),
                                          vertex->data(),
                                          vertex->stride(),
@@ -291,30 +266,16 @@ int main(void)
                                          1000);
 
         /// Compute Normals from these vertices
-        aux_math::ComputeNormalsFromVertex(normals->data(),
+        noise::ComputeNormalsFromVertex(normals->data(),
                                            vertex->data(),
                                            vertex->stride(),
                                            width,
                                            height);
 
-
-        /// Add noise to the vertices
-//        noise::launch_add_kinect_noise(vertex->data(),
-//                                       normals->data(),
-//                                       vertex_with_noise->data(),
-//                                       vertex->stride(),
-//                                       vertex->height(),
-//                                       fl.x,
-//                                       theta1,
-//                                       theta2,
-//                                       z1,
-//                                       z2,
-//                                       z3);
-
         iu::copy(vertex,vertex_with_noise);
 
         /// Convert these noisy vertices to depth
-        aux_math::ComputeDepthFromVertex(vertex_with_noise->data(),
+        noise::ComputeDepthFromVertex(vertex_with_noise->data(),
                                          vertex_with_noise->stride(),
                                          noisy_depth->data(),
                                          noisy_depth->stride(),
@@ -365,7 +326,7 @@ int main(void)
 
 
 
-        aux_math::ComputeVertexFromDepth(noisy_depth->data(),
+        noise::ComputeVertexFromDepth(noisy_depth->data(),
                                          noisy_depth->stride(),
                                          vertex_with_noise->data(),
                                          vertex_with_noise->stride(),
@@ -377,50 +338,50 @@ int main(void)
                                          1000);
 
 
-        float max_val = -1E10;
-        float min_val =  1E10;
+//        float max_val = -1E10;
+//        float min_val =  1E10;
 
-        iu::minMax(depth,depth->roi(),min_val,max_val);
+//        iu::minMax(depth,depth->roi(),min_val,max_val);
 
-        iu::addWeighted(depth,1.0f/(max_val-min_val),all_one,
-                        -min_val/(max_val-min_val),depth,depth->roi());
+//        iu::addWeighted(depth,1.0f/(max_val-min_val),all_one,
+//                        -min_val/(max_val-min_val),depth,depth->roi());
 
-        std::cout << "max_vald = " << max_val <<", min_vald = " << min_val << std::endl;
-
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glDisable(GL_DEPTH_TEST);
-
-        renderutils::DisplayFloatDeviceMemNorm(&displayView1,
-                                               depth->data(),
-                                               depth->pitch(),
-                                               pbo_debug,
-                                               tex_show,
-                                               true,false);
-
-        max_val = -1E10;
-        min_val =  1E10;
-
-        iu::minMax(noisy_depth,noisy_depth->roi(),min_val,max_val);
+//        std::cout << "max_vald = " << max_val <<", min_vald = " << min_val << std::endl;
 
 
-        std::cout << "max_val = " << max_val <<", min_val = " << min_val << std::endl;
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        iu::addWeighted(noisy_depth,1/(max_val-min_val),
-                        all_one,-min_val/(max_val-min_val),
-                        noisy_depth,noisy_depth->roi());
+//        glDisable(GL_DEPTH_TEST);
 
-        renderutils::DisplayFloatDeviceMemNorm(&displayView2,
-                                               noisy_depth->data(),
-                                               noisy_depth->pitch(),
-                                               pbo_debug,
-                                               tex_show,
-                                               true,false);
+//        renderutils::DisplayFloatDeviceMemNorm(&displayView1,
+//                                               depth->data(),
+//                                               depth->pitch(),
+//                                               pbo_debug,
+//                                               tex_show,
+//                                               true,false);
 
-        if ( write_images )
+//        max_val = -1E10;
+//        min_val =  1E10;
+
+//        iu::minMax(noisy_depth,noisy_depth->roi(),min_val,max_val);
+
+
+//        std::cout << "max_val = " << max_val <<", min_val = " << min_val << std::endl;
+
+//        iu::addWeighted(noisy_depth,1/(max_val-min_val),
+//                        all_one,-min_val/(max_val-min_val),
+//                        noisy_depth,noisy_depth->roi());
+
+//        renderutils::DisplayFloatDeviceMemNorm(&displayView2,
+//                                               noisy_depth->data(),
+//                                               noisy_depth->pitch(),
+//                                               pbo_debug,
+//                                               tex_show,
+//                                               true,false);
+
+        if ( 1 )
         {
-            if ( ref_image_no < dataset.getNumberofDepthFiles() )
+            if ( ref_image_no < 1000 )
             {
                 CVD::Image< u_int16_t >depthImage= CVD::Image<u_int16_t>(CVD::ImageRef(width,height));
 
@@ -441,40 +402,34 @@ int main(void)
                 sprintf(txtFileName,"traj3_noise/scene_00_%04d.txt",(int)ref_image_no);
 
                 img_save(depthImage,depthFileName);
-//                img_save(dataset.getPNGImage< CVD::Rgb<u_int16_t> >(ref_image_no,0),imgFileName);
-
-//                ofstream ofile;
-//                ofile.open(txtFileName);
-//                ofile << dataset.computeTpov_cam(ref_image_no,0)<<endl;
-//                ofile.close();
 
                 ref_image_no = ref_image_no+1;
             }
 
-            else
-            {
-                write_images = false;
-            }
+//            else
+//            {
+//                write_images = false;
+//            }
         }
 
-        d_cam.ActivateAndScissor(s_cam);
+//        d_cam.ActivateAndScissor(s_cam);
 
-        {
+//        {
 
-            glEnable(GL_DEPTH_TEST);
+//            glEnable(GL_DEPTH_TEST);
 
-            openglrendering::render3dpoints(vertex_array_0,
-                                            vertex_with_noise,
-                                            colour_array_0,
-                                            d_colour_l0,
-                                            width,
-                                            height);
+//            openglrendering::render3dpoints(vertex_array_0,
+//                                            vertex_with_noise,
+//                                            colour_array_0,
+//                                            d_colour_l0,
+//                                            width,
+//                                            height);
 
-        }
+//        }
 
-        d_panel.Render();
-        glutSwapBuffers();
-        glutMainLoopEvent();
+//        d_panel.Render();
+//        glutSwapBuffers();
+//        glutMainLoopEvent();
 
         GPUMemory();
 

@@ -11,7 +11,10 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
+//#include "cu_math_stuff.h"
+
 #include <cutil_math.h>
+
 
 using namespace std;
 
@@ -90,4 +93,29 @@ void add_depth_noise_barronCVPR2013(float* noisy_depth_copy,
                                const int stridef1,
                                const int height);
 
+void ComputeVertexFromDepth(float* depth,
+                            const unsigned int stridef1,
+                            float4* vertex,
+                            const unsigned int stridef4,
+                            const unsigned int width,
+                            const unsigned int height,
+                            const float2 fl,
+                            const float2 pp,
+                            const float near_plane,
+                            const float far_plane);
+
+void ComputeNormalsFromVertex(float4* normal,
+                              float4* vertex,
+                              const unsigned int stridef4,
+                              const unsigned int width,
+                              const unsigned int height);
+
+void ComputeDepthFromVertex(float4* vertex,
+                            const unsigned int stridef4,
+                            float* depth,
+                            const unsigned int stridef1,
+                            const unsigned int width,
+                            const unsigned int height,
+                            const float2 fl,
+                            const float2 pp);
 }

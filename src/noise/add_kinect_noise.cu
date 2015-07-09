@@ -655,4 +655,221 @@ void  warpImage(float* depth_new,
 
 }
 
+__global__ void cuComputeVertexFromDepth(  float* depth,
+                                           const unsigned int stridef1,
+                                           float4* vertex,
+                                           const unsigned int stridef4,
+                                           const float2 fl,
+                                           const float2 pp,
+                                           const unsigned int width,
+                                           const unsigned int height,
+                                           const float near_plane,
+                                           const float far_plane)
+{
+
+    const unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
+    const unsigned int y = blockIdx.y*blockDim.y + threadIdx.y;
+
+    vertex[y*stridef4+x] = make_float4(0.0f,0.0f,0.0f,0.0f);
+
+    if ( x < width && y < height )
+    {
+        float depthval = depth[y*stridef1+x];
+
+        if ( depthval > near_plane && depthval < far_plane )
+        {
+            vertex[y*stridef4+x] = make_float4(depthval*((float)x-pp.x)/fl.x,
+                                               depthval*((float)y-pp.y)/fl.y,
+                                               depthval,
+                                               1.0f);
+        }
+        else
+        {
+            vertex[y*stridef4+x] = make_float4(0.0f,0.0f,0.0f,0.0f);
+        }
+    }
+
+}
+
+
+void ComputeVertexFromDepth(float* depth,
+                               const unsigned int stridef1,
+                               float4* vertex,
+                               const unsigned int stridef4,
+                               const unsigned int width,
+                               const unsigned int height,
+                               const float2 fl,
+                               const float2 pp,
+                               const float near_plane,
+                               const float far_plane)
+{
+
+    const unsigned int blockWidthx = 32;
+    const unsigned int blockWidthy = 32;
+
+    const dim3 dimBlock(boost::math::gcd<unsigned>( width,blockWidthx),
+                        boost::math::gcd<unsigned>(height,blockWidthy),
+                        1);
+
+    const dim3 dimGrid(width  / dimBlock.x,
+                       height / dimBlock.y,
+                       1);
+
+    cuComputeVertexFromDepth<<<dimGrid, dimBlock>>>(depth,
+                                                    stridef1,
+                                                    vertex,
+                                                    stridef4,
+                                                    fl,
+                                                    pp,
+                                                    width,
+                                                    height,
+                                                    near_plane,
+                                                    far_plane);
+
+}
+
+
+__global__ void cuComputeNormalsFromVertex(float4* normal,
+                                           const float4* vertex,
+                                           const unsigned int stridef4,
+                                           const unsigned int width,
+                                           const unsigned int height)
+{
+    const unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
+    const unsigned int y = blockIdx.y*blockDim.y + threadIdx.y;
+
+    normal[y*stridef4+x] = make_float4(0.0f);
+
+    if( x < width && y < height )
+    {
+        if( x+1 < width && y+1 < height )
+        {
+            const float4 Vc = vertex[(y+0)*stridef4+(x+0)];
+            const float4 Vr = vertex[(y+0)*stridef4+(x+1)];
+            const float4 Vu = vertex[(y+1)*stridef4+(x+0)];
+
+            if ( Vc.w == 1.0f && Vr.w == 1.0f && Vu.w == 1.0f )
+            {
+                const float4 a = Vr - Vc;
+                const float4 b = Vu - Vc;
+
+                /// Pretty useless way of doing it..
+                /// Improve by weighted avergaging of neighbours
+                const float3 axb = make_float3(a.y*b.z - a.z*b.y,
+                                               a.z*b.x - a.x*b.z,
+                                               a.x*b.y - a.y*b.x);
+
+                const float magaxb = length(axb);
+
+                if (magaxb)
+                {
+                    const float4 N = make_float4(axb.x/magaxb, axb.y/magaxb, axb.z/magaxb,1.0f);
+                    normal[y*stridef4+x] = N;
+                }
+            }
+        }
+    }
+}
+
+
+void ComputeNormalsFromVertex(float4* normal,
+                              float4* vertex,
+                              const unsigned int stridef4,
+                              const unsigned int width,
+                              const unsigned int height)
+{
+
+    const int blockWidthx = 32;
+    const int blockWidthy = 32;
+
+    const dim3 dimBlock(boost::math::gcd<unsigned>( width,blockWidthx),
+                        boost::math::gcd<unsigned>(height,blockWidthy),
+                        1);
+
+    const dim3 dimGrid(width  / dimBlock.x,
+                       height / dimBlock.y,
+                       1);
+
+    cuComputeNormalsFromVertex<<<dimGrid, dimBlock >>> (normal,
+                                        vertex,
+                                        stridef4,
+                                        width,
+                                        height);
+
+//    cuComputeNormalsFromVertex<<<dimGrid, dimBlock >>> (normal,
+//                                        vertex,
+//                                        stridef4,
+//                                        width,
+//                                        height);
+
+}
+
+__global__ void cuComputeDepthFromVertex(  float* depth,
+                                           const unsigned int stridef1,
+                                           const float4* vertex,
+                                           const unsigned int stridef4,
+                                           const unsigned int width,
+                                           const unsigned int height,
+                                           const float2 fl,
+                                           const float2 pp)
+{
+
+    const int x = blockIdx.x*blockDim.x + threadIdx.x;
+    const int y = blockIdx.y*blockDim.y + threadIdx.y;
+    const int index4 = (x + y*stridef4);
+
+
+    const float4 v = vertex[index4];
+
+    if(v.w > 0 && v.z > 0)
+    {
+        float _x_d = (v.x*fl.x/v.z) + pp.x;
+        float _y_d = (v.y*fl.y/v.z) + pp.y;
+
+        int x_d = (int)(_x_d + 0.5f);
+        int y_d = (int)(_y_d + 0.5f);
+
+        if ( x_d >= 0 && x_d < width && y_d >= 0 && y_d < height )
+        {
+            int index = (x_d + y_d*stridef1);
+            depth[index] = v.z;
+        }
+    }
+}
+
+
+
+void ComputeDepthFromVertex(float4* vertex,
+                            const unsigned int stridef4,
+                            float* depth,
+                            const unsigned int stridef1,
+                            const unsigned int width,
+                            const unsigned int height,
+                            const float2 fl,
+                            const float2 pp)
+{
+
+    const unsigned int blockWidthx = 32;
+    const unsigned int blockWidthy = 32;
+
+    const dim3 dimBlock(boost::math::gcd<unsigned>( width,blockWidthx),
+                        boost::math::gcd<unsigned>(height,blockWidthy),
+                        1);
+
+    const dim3 dimGrid(width  / dimBlock.x,
+                       height / dimBlock.y,
+                       1);
+
+    cuComputeDepthFromVertex<<<dimGrid, dimBlock>>>(depth,
+                                                    stridef1,
+                                                    vertex,
+                                                    stridef4,
+                                                    width,
+                                                    height,
+                                                    fl,
+                                                    pp);
+
+}
+
+
 }
