@@ -232,7 +232,7 @@ int main(void)
 
         char imgFileName[300];
 
-        sprintf(imgFileName,"/home/ankur/workspace/code/kufrap/data/BE457Chair/depth_image_%04d.png",(int)ref_image_no);
+        sprintf(imgFileName,"../data/depth_imgs/depth_image_%04d.png",(int)ref_image_no);
 
         std::cout<<imgFileName << std::endl;
 
@@ -397,9 +397,9 @@ int main(void)
                 char imgFileName[300];
                 char txtFileName[300];
 
-                sprintf(depthFileName,"traj3_noise/scene_00_%04d_noisy_depth.png",(int)ref_image_no);
-                sprintf(imgFileName,"traj3_noise/scene_00_%04d.png",(int)ref_image_no);
-                sprintf(txtFileName,"traj3_noise/scene_00_%04d.txt",(int)ref_image_no);
+                sprintf(depthFileName,"../data/traj3_noise/scene_00_%04d_noisy_depth.png",(int)ref_image_no);
+                sprintf(imgFileName,"../data/traj3_noise/scene_00_%04d.png",(int)ref_image_no);
+                sprintf(txtFileName,"../data/traj3_noise/scene_00_%04d.txt",(int)ref_image_no);
 
                 img_save(depthImage,depthFileName);
 
