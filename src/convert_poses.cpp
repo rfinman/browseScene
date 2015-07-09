@@ -8,9 +8,9 @@ ConvertPoses::ConvertPoses(std::string in, std::string out):
                                 infile(in.c_str()),
                                 outfile(out.c_str()),
                                 has_file(true),
-                                frame_num(0)
+                                frame_num(0),
+                                num_cores(sysconf(_SC_NPROCESSORS_ONLN))
 {
-    //outfile.open("povray_script.sh");
     if (!infile.is_open())
         std::cout<<"Couldn't open file "<<infile<<std::endl;
 
@@ -23,16 +23,13 @@ ConvertPoses::ConvertPoses(std::string in, std::string out):
 ConvertPoses::ConvertPoses(std::string out):
                     outfile(out.c_str()),
                     has_file(false),
-                    frame_num(0)
+                    frame_num(0),
+                    num_cores(sysconf(_SC_NPROCESSORS_ONLN))
 {
-    //outfile.open("povray_script.sh");
     if (!outfile.is_open())
         std::cout<<"Couldn't open file "<<outfile<<std::endl;
 }
-ConvertPoses::~ConvertPoses()
-{
-
-}
+ConvertPoses::~ConvertPoses(){}
 
 std::vector<float> ConvertPoses::readPoseFromFile()
 {
@@ -74,24 +71,23 @@ bool ConvertPoses::writePose(std::vector<float> pose)
         return false;
     }
 
-    int i = 0;
     outfile << ConvertPoses::povray_path;
-    outfile << " +Iliving_room.pov +WT12 +Oscene_";
+    outfile << " +Iliving_room.pov +WT"<<num_cores<<" +Oscene_";
     outfile << std::setfill('0') << std::setw(5) << frame_num++ <<".png ";
     outfile << " +W640 +H480";
-    outfile << " + Declare=val00="<<pose[i++];
-    outfile << " + Declare=val01="<<pose[i++];
-    outfile << " + Declare=val02="<<pose[i++];
-    outfile << " + Declare=val10="<<pose[i++];
-    outfile << " + Declare=val11="<<pose[i++];
-    outfile << " + Declare=val12="<<pose[i++];
-    outfile << " + Declare=val20="<<pose[i++];
-    outfile << " + Declare=val21="<<pose[i++];
-    outfile << " + Declare=val22="<<pose[i++];
-    outfile << " + Declare=val30="<<pose[i++];
-    outfile << " + Declare=val31="<<pose[i++];
-    outfile << " + Declare=val32="<<pose[i];
-    outfile << " +FN16 +wt12 -d +L";
+    outfile << " + Declare=val00="<<pose[0];
+    outfile << " + Declare=val01="<<pose[4];
+    outfile << " + Declare=val02="<<pose[8];
+    outfile << " + Declare=val10="<<pose[1];
+    outfile << " + Declare=val11="<<pose[5];
+    outfile << " + Declare=val12="<<pose[9];
+    outfile << " + Declare=val20="<<pose[2];
+    outfile << " + Declare=val21="<<pose[6];
+    outfile << " + Declare=val22="<<pose[10];
+    outfile << " + Declare=val30="<<pose[3];
+    outfile << " + Declare=val31="<<pose[7];
+    outfile << " + Declare=val32="<<pose[11];
+    outfile << " +FN16 +wt"<<num_cores<<" -d +L";
     outfile << ConvertPoses::povray_include_path;
     outfile << " + Declare=use_baking=2"<<std::endl;
 

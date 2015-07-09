@@ -9,6 +9,7 @@
 #include <vector>
 #include <sstream>
 #include <iomanip>
+#include <unistd.h>
 
 class ConvertPoses
 {
@@ -25,6 +26,7 @@ class ConvertPoses
     std::ifstream infile;
     std::ofstream outfile;
     int frame_num;
+    int num_cores;
 
     /* Set local paths */
     static const std::string povray_path;
