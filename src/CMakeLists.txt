@@ -91,7 +91,16 @@ SET(VaFRIC_SOURCES
     ./VaFRIC/VaFRIC.h
     ./VaFRIC/VaFRIC.cpp)
 
+SET(SHADERS_SOURCES
+    ./shaders/glsl_shader.h
+    ./shaders/glsl_shader.cpp)
+
 CUDA_ADD_EXECUTABLE(add_kinect_noise
                     ${VaFRIC_SOURCES}
                     ${KINECTNOISE_SOURCES}
                     main_add_kinect_noise.cpp)
+
+CUDA_ADD_EXECUTABLE(depth_shader
+                    ${VaFRIC_SOURCES}
+                    ${SHADERS_SOURCES}
+                    main_depth_shader.cpp)

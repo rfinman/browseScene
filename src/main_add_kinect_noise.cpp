@@ -20,7 +20,7 @@
 #include <gvars3/default.h>
 #include <gvars3/gvars3.h>
 
-#include <VaFRIC/VaFRIC.h>
+#include "VaFRIC/VaFRIC.h"
 
 //#include <icarus/icarus.h>
 
@@ -160,8 +160,7 @@ int main(int argc, char* argv[])
                      K[0][2],
                      K[1][2],
                      K[0][0],
-                     K[1][1],
-                     false);
+                     K[1][1]);
 
     std::cout <<"Total number of files: "<< dataset.getNumberofImageFiles() << std::endl;
 
@@ -243,30 +242,7 @@ int main(int argc, char* argv[])
         /// The depth is between
         dataset.getEuclidean2PlanarDepth((int)ref_image_no,0,h_depth->data());
 
-        float* h_depth_data = h_depth->data();
-
-        char imgFileName[300];
-
-//        sprintf(imgFileName,"../data/depth_imgs/depth_image_%04d.png",(int)ref_image_no);
-
-//        std::cout<<imgFileName << std::endl;
-
-//        CVD::Image<u_int16_t> depthImage(CVD::ImageRef(width,height));
-//        CVD::img_load(depthImage,imgFileName);
-
-//        std::cout << "File has been read ! " << std::endl;
-//        std::cout<<" width = " << width << ", height = " << height << std::endl;
-
-//        for(int yy = 0; yy < height; yy++)
-//        {
-//            for(int xx = 0; xx < width; xx++)
-//            {
-//                h_depth_data[xx+yy*width] = (float)(depthImage[CVD::ImageRef(xx,yy)]);///500.0f;
-//            }
-//        }
-
         iu::copy(h_depth,depth);
-
 
         /// Convert the depth into vertices
         noise::ComputeVertexFromDepth(depth->data(),
@@ -412,7 +388,8 @@ int main(int argc, char* argv[])
                 char imgFileName[300];
                 char txtFileName[300];
 
-                sprintf(depthFileName,"%s/scene_00_%04d_noisy_depth.png",dirPath.c_str(),(int)ref_image_no);
+                sprintf(depthFileName,"%s/scene_00_%04d_noisy_depth.png",dirPath.c_str(),
+                        (int)ref_image_no);
                 sprintf(imgFileName,"%s/scene_00_%04d.png",dirPath.c_str(),(int)ref_image_no);
                 sprintf(txtFileName,"%s/scene_00_%04d.txt",dirPath.c_str(),(int)ref_image_no);
 

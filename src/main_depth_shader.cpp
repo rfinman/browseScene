@@ -405,7 +405,7 @@ int main(int argc, char *argv[])
 
 
     while(!pangolin::ShouldQuit())
-    {       
+    {
         static Var<int>numposes2plot("ui.numposes2plot",0,0,100);
 
         {
@@ -483,7 +483,7 @@ int main(int argc, char *argv[])
 
             for(int i = 0 ; i < shapes.size();i++)
             {
-                int training_label = obj_label2training_label(shapes[i].name);                
+                int training_label = obj_label2training_label(shapes[i].name);
 
                 if ( !inserted_objects )
                 {
