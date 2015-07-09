@@ -67,9 +67,17 @@ void GPUMemory()
     }
 }
 
-int main(void)
+int main(int argc, char* argv[])
 {
-    int scale = 2;
+
+    if ( argc < 2 )
+    {
+        std::cerr<<"Usage: ./binaryName directoryName"<<std::endl;
+        std::cerr<<"The directory should have .png, .txt and .depth files" << std::endl;
+        std::cerr<<"The noisy depth files will be written in the same directory"<<std::endl;
+    }
+
+    int scale = 1;
 
 //    int win_width=1024;
     int win_height=768;
@@ -145,13 +153,18 @@ int main(void)
                           0, -480.0,     239.50,
                           0,      0,       1.00};
 
-//    dataset::vaFRIC dataset("/home/ankur/workspace/code/traj3_loop",
-//                     640,480,
-//                     K[0][2],
-//                     K[1][2],
-//                     K[0][0],
-//                     K[1][1],
-//                     false);
+    std::string dirPath = std::string(argv[1]);
+
+    dataset::vaFRIC dataset(dirPath,
+                     640,480,
+                     K[0][2],
+                     K[1][2],
+                     K[0][0],
+                     K[1][1],
+                     false);
+
+    std::cout <<"Total number of files: "<< dataset.getNumberofImageFiles() << std::endl;
+
 
 
     iu::ImageCpu_32f_C1* h_depth = new iu::ImageCpu_32f_C1(IuSize(width,height));
@@ -203,6 +216,8 @@ int main(void)
     int ref_image_no = 0;
     float sigma_shift = 1/2.0f;
 
+    bool write_images = false;
+
     while(1)
     {
 
@@ -226,29 +241,29 @@ int main(void)
 //        static Var<int>kernel_size("ui.kernel_size",3,1,10);
 
         /// The depth is between
-        //dataset.getEuclidean2PlanarDepth((int)ref_image_no,0,h_depth->data());
+        dataset.getEuclidean2PlanarDepth((int)ref_image_no,0,h_depth->data());
 
         float* h_depth_data = h_depth->data();
 
         char imgFileName[300];
 
-        sprintf(imgFileName,"../data/depth_imgs/depth_image_%04d.png",(int)ref_image_no);
+//        sprintf(imgFileName,"../data/depth_imgs/depth_image_%04d.png",(int)ref_image_no);
 
-        std::cout<<imgFileName << std::endl;
+//        std::cout<<imgFileName << std::endl;
 
-        CVD::Image<u_int16_t> depthImage(CVD::ImageRef(width,height));
-        CVD::img_load(depthImage,imgFileName);
+//        CVD::Image<u_int16_t> depthImage(CVD::ImageRef(width,height));
+//        CVD::img_load(depthImage,imgFileName);
 
-        std::cout << "File has been read ! " << std::endl;
-        std::cout<<" width = " << width << ", height = " << height << std::endl;
+//        std::cout << "File has been read ! " << std::endl;
+//        std::cout<<" width = " << width << ", height = " << height << std::endl;
 
-        for(int yy = 0; yy < height; yy++)
-        {
-            for(int xx = 0; xx < width; xx++)
-            {
-                h_depth_data[xx+yy*width] = (float)(depthImage[CVD::ImageRef(xx,yy)])/500.0f;
-            }
-        }
+//        for(int yy = 0; yy < height; yy++)
+//        {
+//            for(int xx = 0; xx < width; xx++)
+//            {
+//                h_depth_data[xx+yy*width] = (float)(depthImage[CVD::ImageRef(xx,yy)]);///500.0f;
+//            }
+//        }
 
         iu::copy(h_depth,depth);
 
@@ -381,7 +396,7 @@ int main(void)
 
         if ( 1 )
         {
-            if ( ref_image_no < 1000 )
+            if ( ref_image_no < dataset.getNumberofImageFiles() )
             {
                 CVD::Image< u_int16_t >depthImage= CVD::Image<u_int16_t>(CVD::ImageRef(width,height));
 
@@ -397,19 +412,20 @@ int main(void)
                 char imgFileName[300];
                 char txtFileName[300];
 
-                sprintf(depthFileName,"../data/traj3_noise/scene_00_%04d_noisy_depth.png",(int)ref_image_no);
-                sprintf(imgFileName,"../data/traj3_noise/scene_00_%04d.png",(int)ref_image_no);
-                sprintf(txtFileName,"../data/traj3_noise/scene_00_%04d.txt",(int)ref_image_no);
+                sprintf(depthFileName,"%s/scene_00_%04d_noisy_depth.png",dirPath.c_str(),(int)ref_image_no);
+                sprintf(imgFileName,"%s/scene_00_%04d.png",dirPath.c_str(),(int)ref_image_no);
+                sprintf(txtFileName,"%s/scene_00_%04d.txt",dirPath.c_str(),(int)ref_image_no);
 
                 img_save(depthImage,depthFileName);
 
                 ref_image_no = ref_image_no+1;
             }
 
-//            else
-//            {
+            else
+            {
 //                write_images = false;
-//            }
+                return 1;
+            }
         }
 
 //        d_cam.ActivateAndScissor(s_cam);

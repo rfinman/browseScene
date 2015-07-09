@@ -400,8 +400,8 @@ __global__ void convert_depth2png (float* noisy_depth,
     unsigned int x = blockIdx.x*blockDim.x + threadIdx.x;
     unsigned int y = blockIdx.y*blockDim.y + threadIdx.y;
 
-//    noisy_depth_png[y*strideu16+x] = (u_int16_t)(noisy_depth[y*stridef1+x]*5000);
-    noisy_depth_png[y*strideu16+x] = (u_int16_t)(noisy_depth[y*stridef1+x]*500);
+    noisy_depth_png[y*strideu16+x] = (u_int16_t)(noisy_depth[y*stridef1+x]*5000);
+//    noisy_depth_png[y*strideu16+x] = (u_int16_t)(noisy_depth[y*stridef1+x]*500);
 }
 
 

@@ -87,6 +87,11 @@ SET(KINECTNOISE_SOURCES
     ./noise/add_kinect_noise.h
     ./noise/add_kinect_noise.cu)
 
+SET(VaFRIC_SOURCES
+    ./VaFRIC/VaFRIC.h
+    ./VaFRIC/VaFRIC.cpp)
+
 CUDA_ADD_EXECUTABLE(add_kinect_noise
+                    ${VaFRIC_SOURCES}
                     ${KINECTNOISE_SOURCES}
                     main_add_kinect_noise.cpp)
