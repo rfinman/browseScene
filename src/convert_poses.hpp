@@ -10,6 +10,9 @@
 #include <sstream>
 #include <iomanip>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 
 class ConvertPoses
 {
@@ -20,17 +23,23 @@ class ConvertPoses
 
     std::vector<float> readPoseFromFile();
     bool writePose(std::vector<float>);
+    bool writePoseAndPOVRAY(std::vector<float>);
     void closeFile();
+
     private:
     bool has_file;
     std::ifstream infile;
     std::ofstream outfile;
     int frame_num;
     int num_cores;
+    
 
     /* Set local paths */
     static const std::string povray_path;
     static const std::string povray_include_path;
+    static const std::string directory;
+    static const std::string pov_header;
 };
+
 
 #endif /* _convert_poses_hpp_ */
