@@ -222,6 +222,23 @@ double checkDisplacement(TooN::SE3<>&T1, TooN::SE3<>&T2)
     return TooN::norm(t1_ln-t2_ln);
 }
 
+void threadLabeling(int thread_id, int num_threads,
+        int width, int height, std::map<int, int> *colour2indexMap,
+        std::set<int> *unique_objects, 
+        CVD::Image<CVD::Rgb<CVD::byte> > *img)
+{
+    for(int yy = thread_id; yy < height; yy+=num_threads )
+    {
+        for(int xx = thread_id; xx < width; xx+=num_threads)
+        {
+            CVD::Rgb<CVD::byte> pix = (*img)[CVD::ImageRef(xx,yy)];
+            int ind = pix.red + 256*pix.green + 256*256*pix.blue;
+
+            unique_objects->insert((*colour2indexMap)[ind]);
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -301,7 +318,13 @@ int main(int argc, char *argv[])
     }
 
 
-    ConvertPoses poses("");
+    std::ofstream object_file("visible_objects.txt");
+    if (!object_file.is_open())
+        std::cout<<"Couldn't open file visibile_objects.txt"<<std::endl;
+    std::ofstream pose_file("poses.txt");
+    if (!pose_file.is_open())
+        std::cout<<"Couldn't open file poses.txt"<<std::endl;
+
 #define _joystick_
 #ifdef _joystick_
     /* Start Joystick */
@@ -350,23 +373,64 @@ int main(int argc, char *argv[])
 
     std::cout<<"entering the while loop" << std::endl;
 
-    TooN::Matrix<17,3>colours = TooN::Data(0,0,1.0,
-            0.9137,0.3490,0.1882,
-            0,0.8549,0,
-            0.5843,0,0.9412,
-            0.8706,0.9451,0.0941,
-            1.0000,0.8078,0.8078,
-            0,0.8784,0.8980,
-            0.4157,0.5333,0.8000,
-            0.4588,0.1137,0.1608,
-            0.9412,0.1333,0.9216,
-            0,0.6549,0.6118,
-            0.9765,0.5451,0,
-            0.8824,0.8980,0.7608,
-            1.0000,0,0,
-            0.8118,0.7176,0.2706,
-            0.7922,0.5804,0.5804,
-            0.4902,0.4824,0.4784);   
+    // Count the number of shapes
+    int max_label = 0;
+    for (int i = 0; i < shapes.size(); i++)
+    {
+        int training_label = obj_label2training_label(shapes[i].name);
+        max_label = std::max(max_label, training_label);
+    }
+
+    TooN::Matrix<Dynamic, Dynamic> colours(max_label, 3);
+    std::map<int, int>colour2indexMap;
+
+    for ( int i = 0; i < max_label; i++)
+    {
+        // With the same seeded label, the colors should be the same across runs
+        srand(i);
+        colours(i, 0) = static_cast<float>(rand()) /
+            static_cast<float>(RAND_MAX);
+        colours(i, 1) = static_cast<float>(rand()) /
+            static_cast<float>(RAND_MAX);
+        colours(i, 2) = static_cast<float>(rand()) /
+            static_cast<float>(RAND_MAX);
+
+        colour2indexMap[ (int)round((colours(i,0))*255) + 
+            ((int)round(colours(i,1)*255))*256 +
+            ((int)round(colours(i,2)*255))*256*256] = i;
+        /**
+          std::cout <<" - "<<(int)round((colours(i,0))*255) + 
+          (int)(round(colours(i,1)*255))*256 +
+          (int)(round(colours(i,2)*255))*256*256<< std::endl;
+          int training_label = obj_label2training_label(shapes[i].name);
+          std::cout << "Color "<<training_label<<" "<<shapes[i].name
+          <<": "<<(int)round(colours(i,0)*255)
+          <<" "<<(int)round(colours(i,1)*255)
+          <<" "<<(int)round(colours(i,2)*255)<<std::endl;
+         **/
+    }
+
+
+
+    /**
+      TooN::Matrix<17,3>colours = TooN::Data(0,0,1.0,
+      0.9137,0.3490,0.1882,
+      0,0.8549,0,
+      0.5843,0,0.9412,
+      0.8706,0.9451,0.0941,
+      1.0000,0.8078,0.8078,
+      0,0.8784,0.8980,
+      0.4157,0.5333,0.8000,
+      0.4588,0.1137,0.1608,
+      0.9412,0.1333,0.9216,
+      0,0.6549,0.6118,
+      0.9765,0.5451,0,
+      0.8824,0.8980,0.7608,
+      1.0000,0,0,
+      0.8118,0.7176,0.2706,
+      0.7922,0.5804,0.5804,
+      0.4902,0.4824,0.4784);   
+    /**/
 
     std::vector<TooN::SE3<> >poses2render;
 
@@ -441,10 +505,11 @@ int main(int argc, char *argv[])
         static Var<int>numposes2plot("ui.numposes2plot",500,0,500);
 
         static Var<bool> write_poses("ui.write_poses",false);
-        static Var<bool> log_poses("ui.log_poses",false);
+        static Var<bool> log_poses_and_objs("ui.log_poses_and_objs",false);
 
         TooN::SE3<> T_co(TooN::SO3<>(TooN::makeVector(0,0,0)),
                 TooN::makeVector(0,0,0));
+        CVD::Image<CVD::Rgb<CVD::byte> > img_flipped(CVD::ImageRef(640,480));
 
         {
             if ( start_browsing )
@@ -664,9 +729,11 @@ int main(int argc, char *argv[])
             }
 
 
-            if ( log_poses )
+            if ( log_poses_and_objs )
             {
 
+                pose_file << T_wc << std::endl;
+                /**
                 std::stringstream string_pose;
                 string_pose << T_wc;
 
@@ -684,8 +751,40 @@ int main(int argc, char *argv[])
                         }
                     }
                 }
+                */
 
-                poses.writePoseAndPOVRAY(pose);
+                /* find all objects */
+                CVD::Image<CVD::Rgb<CVD::byte> > img = 
+                    CVD::glReadPixels<CVD::Rgb<CVD::byte> >(CVD::ImageRef(640,480),
+                            CVD::ImageRef(150,0));
+
+                int num_threads = 12;
+                boost::thread_group threads;
+                std::vector<std::set<int> > thread_set(num_threads);
+                for (int i = 0; i < num_threads; i++)
+                {
+                    threads.add_thread(new
+                            boost::thread(threadLabeling, i, num_threads, 
+                                width, height,&colour2indexMap, &thread_set.at(i), &img));
+                }
+                threads.join_all();
+
+                std::set<int> unique_objects_this_frame;
+                for (int i = 0; i < num_threads; i++)
+                {
+                    unique_objects_this_frame.insert(thread_set.at(i).begin(),
+                            thread_set.at(i).end());
+                }
+
+                std::cout <<"\runique objects this frame = ";
+                std::set<int>::iterator it;
+                for (it=unique_objects_this_frame.begin(); it!=unique_objects_this_frame.end(); ++it)
+                {
+                    std::cout << ' ' << *it;
+                    object_file << ' '<< *it;
+                }
+                fflush(stdout);
+                object_file<<std::endl;
             }
 
             if ( write_poses )

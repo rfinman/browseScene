@@ -120,7 +120,6 @@ bool ConvertPoses::writePoseAndPOVRAY(std::vector<float> pose)
     {
         std::cout<<"Couldn't open file "<<pov_file<<std::endl;
         return false;
-
     }
 
     pov_file << "#version 3.7"<<std::endl;

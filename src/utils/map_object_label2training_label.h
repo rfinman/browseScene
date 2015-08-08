@@ -18,6 +18,10 @@ enum{
  TABLE,// <1.0000,0,0>
  SOFA,// <0.8118,0.7176,0.2706>
  LAMP,// <0.7922,0.5804,0.5804>
+ VASE,
+ PLANT,
+ PLATE,
+ STAND,
  UNKNOWN// <0.4902,0.4824,0.4784>
 };
 
@@ -185,6 +189,15 @@ std::string get_class_name(std::string& objectLabel)
     else if ( (objectLabel.find("lamp") != std::string::npos ) )
         return "LAMP";
 
+    else if ( (objectLabel.find("palm") != std::string::npos ) )
+        return "PLANT";
+
+    else if ( (objectLabel.find("vase") != std::string::npos ) )
+        return "VASE";
+
+    else if ( (objectLabel.find("plate") != std::string::npos ) )
+        return "PLATE";
+
     else
         return "UNKNOWN";
 }
@@ -332,6 +345,18 @@ int obj_label2training_label(std::string& objectLabel)
 
     else if ( (objectLabel.find("lamp") != std::string::npos ) )
         return LAMP;
+
+    else if ( (objectLabel.find("palm") != std::string::npos ) )
+        return PLANT;
+
+    else if ( (objectLabel.find("vase") != std::string::npos ) )
+        return VASE;
+
+    else if ( (objectLabel.find("plate") != std::string::npos ) )
+        return PLATE;
+
+    else if ( (objectLabel.find("stand") != std::string::npos ) )
+        return STAND;
 
     else
         return UNKNOWN;
