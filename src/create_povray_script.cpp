@@ -39,8 +39,13 @@ int main (int argc, char** argv)
     {
         usage(argv[0]);
     }
+    
+    std::string filename;
+    std::size_t find_dot = pose_filepath.find(".txt");
+    std::size_t find_slash = pose_filepath.find_last_of('/');
+    filename = pose_filepath.substr(find_slash+1,find_dot-find_slash-1);
 
-    ConvertPoses poses(pose_filepath, "test.sh");
+    ConvertPoses poses(pose_filepath, (filename + ".sh").c_str());
     std::vector<float> pose;
 
     for (pose = poses.readPoseFromFile(); pose.size() != 0;

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 
 #include <iostream>
 #include <opencv2/opencv.hpp>
@@ -20,6 +21,9 @@
 #include "utils/tiny_obj_loader.h"
 #include "joystick/JoystickController.hpp"
 #include "convert_poses.hpp"
+
+#define SSTR( x ) dynamic_cast< std::ostringstream & >( \
+        ( std::ostringstream() <<std::dec << x ) ).str()
 
 using namespace pangolin;
 
@@ -239,6 +243,16 @@ void threadLabeling(int thread_id, int num_threads,
     }
 }
 
+bool fileExists(const std::string& filename)
+{
+    struct stat buf;
+    if (stat(filename.c_str(), &buf) != -1)
+    {
+        return true;
+    }
+    return false;
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -317,11 +331,23 @@ int main(int argc, char *argv[])
         }
     }
 
+    std::string pose_filename(obj_basename + "_poses_");
+    std::string visible_objects_filename(obj_basename + "_visibile_objects_");
+    std::string txt_ending(".txt");
 
-    std::ofstream object_file("visible_objects.txt");
+    int file_counter = 0;
+    while (true)
+    {
+        if (!fileExists(pose_filename+SSTR(file_counter)+txt_ending))
+            break;
+        file_counter++;
+    }
+
+    std::ofstream object_file((visible_objects_filename+SSTR(file_counter)+txt_ending).c_str());
+    std::ofstream pose_file((pose_filename+SSTR(file_counter)+txt_ending).c_str());
+    
     if (!object_file.is_open())
         std::cout<<"Couldn't open file visibile_objects.txt"<<std::endl;
-    std::ofstream pose_file("poses.txt");
     if (!pose_file.is_open())
         std::cout<<"Couldn't open file poses.txt"<<std::endl;
 
@@ -349,14 +375,14 @@ int main(int argc, char *argv[])
     int w_height = 480;
     const int UI_WIDTH = 150;
 
-    pangolin::CreateGlutWindowAndBind("GUISandbox",w_width+150,w_height);
+    pangolin::CreateGlutWindowAndBind("GUISandbox",w_width+UI_WIDTH,w_height);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glewInit();
 
     /// Create a Panel
     pangolin::View& d_panel = pangolin::CreatePanel("ui")
-        .SetBounds(1.0, 0.0, 0, pangolin::Attach::Pix(150));
+        .SetBounds(1.0, 0.0, 0, pangolin::Attach::Pix(UI_WIDTH));
 
     pangolin::OpenGlRenderState browsing_cam;
     browsing_cam.SetProjectionMatrix(ProjectionMatrixRDF_BottomLeft(640, 480, 420, 420,
@@ -381,13 +407,16 @@ int main(int argc, char *argv[])
         max_label = std::max(max_label, training_label);
     }
 
+
     TooN::Matrix<Dynamic, Dynamic> colours(max_label, 3);
     std::map<int, int>colour2indexMap;
 
-    for ( int i = 0; i < max_label; i++)
+    // <= since the label was seen, so need to include
+    for ( int i = 0; i <= max_label; i++)
     {
         // With the same seeded label, the colors should be the same across runs
-        srand(i);
+        // +1 since srand(0) is srand(1) since rand can't be initialized by 0
+        srand(i+1);
         colours(i, 0) = static_cast<float>(rand()) /
             static_cast<float>(RAND_MAX);
         colours(i, 1) = static_cast<float>(rand()) /
@@ -403,7 +432,7 @@ int main(int argc, char *argv[])
           (int)(round(colours(i,1)*255))*256 +
           (int)(round(colours(i,2)*255))*256*256<< std::endl;
           int training_label = obj_label2training_label(shapes[i].name);
-          std::cout << "Color "<<training_label<<" "<<shapes[i].name
+          std::cout << i<<" "<< index2class_name(training_label)<<" Color "<<training_label<<" "<<shapes[i].name
           <<": "<<(int)round(colours(i,0)*255)
           <<" "<<(int)round(colours(i,1)*255)
           <<" "<<(int)round(colours(i,2)*255)<<std::endl;

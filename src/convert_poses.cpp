@@ -7,27 +7,27 @@ const std::string ConvertPoses::pov_header = "living_room_";
 
 ConvertPoses::ConvertPoses(std::string in, std::string out):
     infile(in.c_str()),
-    outfile((directory + out).c_str()),
+    outfile(out.c_str()),
     has_file(true),
     frame_num(0),
     num_cores(sysconf(_SC_NPROCESSORS_ONLN))
 {
-    mkdir(ConvertPoses::directory.c_str(), 0x777);    
+//    mkdir(ConvertPoses::directory.c_str(), 0x777);    
 
     if (!infile.is_open())
-        std::cout<<"Couldn't open file "<<infile<<std::endl;
+        std::cout<<"Couldn't open infile "<<infile<<std::endl;
 
     if (!outfile.is_open())
-        std::cout<<"Couldn't open file "<<outfile<<std::endl;
+        std::cout<<"Couldn't open outfile "<<outfile<<std::endl;
 }
 
 ConvertPoses::ConvertPoses(std::string out):
-    outfile((directory + out).c_str()),
+    outfile(out.c_str()),
     has_file(false),
     frame_num(0),
     num_cores(sysconf(_SC_NPROCESSORS_ONLN))
 {
-    mkdir(ConvertPoses::directory.c_str(), 0x777);    
+//    mkdir(ConvertPoses::directory.c_str(), 0x777);    
 
     if (!outfile.is_open())
         std::cout<<"Couldn't open file "<<outfile<<std::endl;
