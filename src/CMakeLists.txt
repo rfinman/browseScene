@@ -11,6 +11,13 @@ find_package(GLUT REQUIRED)
 find_package(Pangolin REQUIRED)
 find_package(CVD REQUIRED)
 find_package(MinimalImgUtilities REQUIRED)
+find_package(OpenMP)
+find_package(Boost COMPONENTS thread REQUIRED)
+
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
 
 
 # Adapt it accordingly
@@ -83,8 +90,9 @@ ADD_EXECUTABLE(browse ${TINYOBJLOADER_SOURCES}
                       browse.cpp 
                       joystick/JoystickController.cpp 
                       joystick/joystick.cpp
+                      convert_poses.cpp
                       )
-target_link_libraries(browse ${GTKMM_LIBRARIES})
+target_link_libraries(browse ${GTKMM_LIBRARIES} -lboost_system boost_thread)
 
 ADD_EXECUTABLE(render_annotated_image ${TINYOBJLOADER_SOURCES} 
 		      main_annotation_render.cpp)
@@ -100,16 +108,17 @@ SET(VaFRIC_SOURCES
     ./VaFRIC/VaFRIC.h
     ./VaFRIC/VaFRIC.cpp)
 
-SET(SHADERS_SOURCES
-    ./shaders/glsl_shader.h
-    ./shaders/glsl_shader.cpp)
+
+#SET(SHADERS_SOURCES
+#    ./shaders/glsl_shader.h
+#    ./shaders/glsl_shader.cpp)
 
 CUDA_ADD_EXECUTABLE(add_kinect_noise
                     ${VaFRIC_SOURCES}
                     ${KINECTNOISE_SOURCES}
                     main_add_kinect_noise.cpp)
 
-CUDA_ADD_EXECUTABLE(depth_shader
-                    ${VaFRIC_SOURCES}
-                    ${SHADERS_SOURCES}
-                    main_depth_shader.cpp)
+#CUDA_ADD_EXECUTABLE(depth_shader
+#                    ${VaFRIC_SOURCES}
+#                    ${SHADERS_SOURCES}
+#                    main_depth_shader.cpp)
