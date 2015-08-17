@@ -399,9 +399,9 @@ int main(int argc, char *argv[])
 
 
     /// Offscreen render buffer for synthetic video sequence
-    pangolin::GlRenderBuffer synth_depth(w,h);
-    pangolin::GlTexture synth_texture(w,h,GL_RGBA);
-    pangolin::GlFramebuffer synth_framebuffer(synth_texture, synth_depth);
+//    pangolin::GlRenderBuffer synth_depth(w,h);
+//    pangolin::GlTexture synth_texture(w,h,GL_RGBA);
+//    pangolin::GlFramebuffer synth_framebuffer(synth_texture, synth_depth);
 
 
     while(!pangolin::ShouldQuit())
