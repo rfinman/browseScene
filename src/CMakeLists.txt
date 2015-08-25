@@ -91,6 +91,12 @@ target_link_libraries(render_annotated_image ${GTKMM_LIBRARIES})
 
 ADD_EXECUTABLE(create_script create_povray_script.cpp convert_poses.cpp)
 
+# Add png_to lcm files and lcmtypes
+ADD_EXECUTABLE(png_to_lcm utils/png_to_lcm.cpp 
+utils/lcmtypes/openni_frame_msg_t.c utils/lcmtypes/openni_depth_msg_t.c 
+utils/lcmtypes/openni_image_msg_t.c utils/lcmtypes/openni_disparity_msg_t.c)
+target_link_libraries(png_to_lcm -llcm)
+
 SET(KINECTNOISE_SOURCES
     ./noise/add_kinect_noise.h
     ./noise/add_kinect_noise.cu)
