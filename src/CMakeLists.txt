@@ -46,6 +46,12 @@ INCLUDE_DIRECTORIES(
 	    ${MinimalImgUtilities_INCLUDE_DIR}
             ${CUDA_CUT_INCLUDE_DIR}
             ${CUDA_INCLUDE_DIRS}
+	    /usr/local/include/sigc++-2.0/
+	    /usr/local/lib/sigc++-2.0/include/
+	    /usr/lib/x86_64-linux-gnu/glibmm-2.4/include/
+             /usr/include/glib-2.0/
+/usr/lib/x86_64-linux-gnu/glib-2.0/include/
+/usr/include/glibmm-2.4
             )
 
 LINK_LIBRARIES(
@@ -57,6 +63,9 @@ LINK_LIBRARIES(
             -lglut
             -lGLU
             -lGL
+   	    #-lglib
+  	/usr/local/lib/libsigc-2.0.so
+/usr/lib/x86_64-linux-gnu/libglib-2.0.so
             )
 
 LINK_DIRECTORIES(
